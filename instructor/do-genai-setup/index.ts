@@ -24,7 +24,7 @@ const createModelAccessKey = new command.local.Command("create-model-access-key"
     delete: pulumi.interpolate`KEY_UUID=$(curl -s -X GET "${doApiBaseUrl}/models/api_keys" \
         -H "Authorization: Bearer ${doToken}" \
         -H "Content-Type: application/json" | \
-        jq -r '.api_keys[]? | select(.name=="${keyName}") | .uuid // empty') && \
+        jq -r '.api_key_infos[]? | select(.name=="${keyName}") | .uuid // empty') && \
         [ -n "$KEY_UUID" ] && curl -s -X DELETE "${doApiBaseUrl}/models/api_keys/$KEY_UUID" \
         -H "Authorization: Bearer ${doToken}" \
         -H "Content-Type: application/json" || echo "Key not found"`,
