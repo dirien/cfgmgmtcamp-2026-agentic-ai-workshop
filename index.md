@@ -28,19 +28,22 @@ In this workshop, you'll create a multi-agent architecture using [Kagent](https:
 - **Fix** infrastructure code by creating pull requests via Pulumi Neo
 - **Orchestrate** multiple agents that coordinate autonomously to investigate and resolve issues
 
-```
-+-------------------------------------------------------------+
-|                    Orchestrator Agent                       |
-|         (Coordinates investigation and remediation)         |
-+----------------------------+--------------------------------+
-                             |
-         +-------------------+-------------------+
-         |                   |                   |
-         v                   v                   v
-+-------------+      +-------------+      +-------------+
-|  K8s Agent  |      | PromQL Agent|      |Pulumi Agent |
-|  (Diagnose) |      |  (Metrics)  |      |  (Fix PRs)  |
-+-------------+      +-------------+      +-------------+
+```mermaid
+graph TD
+    orch["Orchestrator Agent<br/>Coordinates investigation and remediation"]
+
+    orch --> k8s
+    orch --> promql
+    orch --> pulumi
+
+    k8s["K8s Agent<br/>(Diagnose)"]
+    promql["PromQL Agent<br/>(Metrics)"]
+    pulumi["Pulumi Agent<br/>(Fix PRs)"]
+
+    style orch fill:#6366f1,stroke:#4f46e5,color:#fff
+    style k8s fill:#22c55e,stroke:#16a34a,color:#fff
+    style promql fill:#22c55e,stroke:#16a34a,color:#fff
+    style pulumi fill:#22c55e,stroke:#16a34a,color:#fff
 ```
 
 ## Speakers

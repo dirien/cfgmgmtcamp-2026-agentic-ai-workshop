@@ -1,12 +1,13 @@
 ---
 title: "Chapter 2: Deploy Kagent & MCP"
+layout: default
 ---
 
 # Chapter 2: Deploy Kagent & MCP
 
 In this chapter, you'll deploy [Kagent](https://kagent.dev/) - a Kubernetes-native framework for building AI agents - along with the kmcp controller for managing MCP (Model Context Protocol) servers.
 
-## :dart: Goals
+## Goals
 
 - Configure Pulumi ESC with stack reference for kubeconfig
 - Deploy Kagent CRDs and controller via Helm
@@ -15,7 +16,7 @@ In this chapter, you'll deploy [Kagent](https://kagent.dev/) - a Kubernetes-nati
 - Access the Kagent dashboard via LoadBalancer
 - Explore the built-in K8s and PromQL agents
 
-## :clock1: Estimated Time: 45 minutes
+## Estimated Time: 45 minutes
 
 ---
 
@@ -30,7 +31,7 @@ Kagent is a CNCF sandbox project that brings agentic AI to Kubernetes. It provid
 
 ## Step 1: Create the Workload ESC Environment
 
-:key: **Important**: For deploying workloads to Kubernetes, we use a **separate ESC environment** from the infrastructure one. This environment uses Pulumi ESC's stack reference feature to automatically retrieve the kubeconfig from the Chapter 1 stack output.
+**Important**: For deploying workloads to Kubernetes, we use a **separate ESC environment** from the infrastructure one. This environment uses Pulumi ESC's stack reference feature to automatically retrieve the kubeconfig from the Chapter 1 stack output.
 
 ### Why Separate Environments?
 
@@ -193,7 +194,7 @@ export const kagentReleaseName = kagent.name;
 ```
 
 <details>
-<summary>:page_facing_up: Click to see YAML version</summary>
+<summary>Click to see YAML version</summary>
 
 ```yaml
 name: 02-kagent-mcp
@@ -367,7 +368,7 @@ Open the Kagent dashboard in your browser. You should see:
 1. Select **promql-agent** from the sidebar
 2. Ask: "What is the current CPU usage across all nodes?"
 
-:bulb: **Note**: PromQL agent requires Prometheus to be deployed (we'll do this in Chapter 3)
+**Note**: PromQL agent requires Prometheus to be deployed (we'll do this in Chapter 3)
 
 ## Step 8: Verify the Installation
 
@@ -384,7 +385,7 @@ kubectl get crds | grep kagent
 kubectl get agents -n kagent
 ```
 
-## :white_check_mark: Checkpoint
+## Checkpoint
 
 Before proceeding, verify:
 
@@ -395,34 +396,37 @@ Before proceeding, verify:
 
 ## Understanding the Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                  Kagent Namespace                        │
-├─────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │   kagent     │  │   kagent-ui  │  │    kmcp      │  │
-│  │  controller  │  │  (dashboard) │  │  controller  │  │
-│  └──────────────┘  └──────────────┘  └──────────────┘  │
-│                                                         │
-│  ┌──────────────┐  ┌──────────────┐                    │
-│  │  k8s-agent   │  │promql-agent  │  ... more agents   │
-│  │   (Agent)    │  │   (Agent)    │                    │
-│  └──────────────┘  └──────────────┘                    │
-│                                                         │
-│  ┌──────────────┐                                      │
-│  │ ModelConfig  │  (LLM credentials)                   │
-│  │   default    │                                      │
-│  └──────────────┘                                      │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph ns["Kagent Namespace"]
+        subgraph controllers["Controllers"]
+            kagent["kagent<br/>controller"]
+            ui["kagent-ui<br/>(dashboard)"]
+            kmcp["kmcp<br/>controller"]
+        end
+        subgraph agents["Agents"]
+            k8s["k8s-agent<br/>(Agent)"]
+            promql["promql-agent<br/>(Agent)"]
+            more["... more agents"]
+        end
+        subgraph config["Configuration"]
+            mc["ModelConfig<br/>default<br/>(LLM credentials)"]
+        end
+    end
+
+    style ns fill:#f5f5f5,stroke:#333
+    style controllers fill:#e3f2fd,stroke:#1976d2
+    style agents fill:#e8f5e9,stroke:#388e3c
+    style config fill:#fff3e0,stroke:#f57c00
 ```
 
-## :rocket: Stretch Goals
+## Stretch Goals
 
 1. **Explore Agent CRDs**: Run `kubectl describe agent k8s-agent -n kagent` to see the full agent specification
 2. **Check Model Config**: Run `kubectl get modelconfig -n kagent` to see the LLM configuration
 3. **Test Different Prompts**: Try complex Kubernetes queries with the k8s-agent
 
-## :books: Learn More
+## Learn More
 
 - [Kagent Documentation](https://kagent.dev/docs/)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
@@ -431,4 +435,4 @@ Before proceeding, verify:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 3: Deploy Platform Workload](03-deploy-platform-workload)
+**Next**: [Chapter 3: Deploy Platform Workload](03-deploy-platform-workload)

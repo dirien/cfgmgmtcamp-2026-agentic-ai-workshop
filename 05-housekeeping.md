@@ -1,24 +1,25 @@
 ---
 title: "Chapter 5: Housekeeping"
+layout: default
 ---
 
 # Chapter 5: Housekeeping
 
-Time to clean up! :broom: In this chapter, we'll destroy all the resources we created to avoid unnecessary charges on your DigitalOcean account.
+Time to clean up! In this chapter, we'll destroy all the resources we created to avoid unnecessary charges on your DigitalOcean account.
 
-## :dart: Goals
+## Goals
 
 - Destroy all Pulumi stacks in reverse order
 - Verify all resources are cleaned up
 - Save any work you want to keep
 
-## :clock1: Estimated Time: 15 minutes
+## Estimated Time: 15 minutes
 
 ---
 
 ## Before You Begin
 
-:warning: **Warning**: This will permanently delete all resources. Make sure to:
+**Warning**: This will permanently delete all resources. Make sure to:
 
 1. Save any work or configurations you want to keep
 2. Export any Grafana dashboards you created
@@ -64,7 +65,7 @@ pulumi destroy --yes
 pulumi stack rm dev --yes
 ```
 
-:warning: This step takes 5-10 minutes as DigitalOcean deprovisions the cluster.
+**Note**: This step takes 5-10 minutes as DigitalOcean deprovisions the cluster.
 
 ## Step 5: Verify Cleanup
 
@@ -145,7 +146,7 @@ rm -f 01-solution/typescript/kubeconfig.yaml
 rm -rf */*/node_modules
 ```
 
-## :white_check_mark: Final Checklist
+## Final Checklist
 
 Before leaving, verify:
 
@@ -154,7 +155,7 @@ Before leaving, verify:
 - [ ] No unexpected charges on your account
 - [ ] Any important work saved/exported
 
-## Thank You! :heart:
+## Thank You!
 
 Thank you for attending the **Building AI-Assisted Operations: Agentic AI Workshop**!
 
@@ -166,10 +167,10 @@ We hope you learned:
 
 ## Stay Connected
 
-- :star: Star this repo: [github.com/dirien/cfgmgmtcamp-2026-agentic-ai-workshop](https://github.com/dirien/cfgmgmtcamp-2026-agentic-ai-workshop)
-- :speech_balloon: Join the Pulumi Community: [slack.pulumi.com](https://slack.pulumi.com/)
-- :bird: Follow us on Twitter: [@PulumiCorp](https://twitter.com/PulumiCorp)
-- :books: Learn more: [pulumi.com/learn](https://www.pulumi.com/learn/)
+- Star this repo: [github.com/dirien/cfgmgmtcamp-2026-agentic-ai-workshop](https://github.com/dirien/cfgmgmtcamp-2026-agentic-ai-workshop)
+- Join the Pulumi Community: [slack.pulumi.com](https://slack.pulumi.com/)
+- Follow us on Twitter: [@PulumiCorp](https://twitter.com/PulumiCorp)
+- Learn more: [pulumi.com/learn](https://www.pulumi.com/learn/)
 
 ## Feedback
 
@@ -177,4 +178,4 @@ We'd love to hear your feedback! Please fill out the workshop survey (link provi
 
 ---
 
-:wave: See you at the next CfgMgmtCamp!
+See you at the next CfgMgmtCamp!

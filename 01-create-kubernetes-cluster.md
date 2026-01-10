@@ -1,25 +1,26 @@
 ---
 title: "Chapter 1: Create Kubernetes Cluster"
+layout: default
 ---
 
 # Chapter 1: Create Kubernetes Cluster
 
 In this chapter, you'll provision a DigitalOcean Kubernetes (DOKS) cluster using Pulumi. This cluster will host our AI agents and the workloads they'll manage.
 
-## :dart: Goals
+## Goals
 
 - Configure Pulumi ESC to access shared workshop credentials
 - Provision a 2-node DOKS cluster in Frankfurt (fra1)
 - Export the kubeconfig for kubectl access
 - Verify cluster connectivity
 
-## :clock1: Estimated Time: 30 minutes
+## Estimated Time: 30 minutes
 
 ---
 
 ## Step 1: Create and Configure Pulumi ESC Environment
 
-:key: **Important**: For this workshop, everyone will use a DigitalOcean token managed via [Pulumi ESC](https://www.pulumi.com/docs/esc/) (Environments, Secrets, and Configuration). This ensures secure credential management without exposing tokens in code or environment variables.
+**Important**: For this workshop, everyone will use a DigitalOcean token managed via [Pulumi ESC](https://www.pulumi.com/docs/esc/) (Environments, Secrets, and Configuration). This ensures secure credential management without exposing tokens in code or environment variables.
 
 ### Create the ESC Environment
 
@@ -150,7 +151,7 @@ export const kubeconfig = cluster.kubeConfigs[0].rawConfig;
 ```
 
 <details>
-<summary>:page_facing_up: Click to see YAML version</summary>
+<summary>Click to see YAML version</summary>
 
 ```yaml
 name: 01-k8s-cluster
@@ -223,7 +224,7 @@ pulumi up
 
 Review the preview and select **yes** to proceed. The cluster creation takes approximately 5-10 minutes.
 
-:coffee: This is a good time for a coffee break!
+This is a good time for a coffee break!
 
 ## Step 6: Configure kubectl
 
@@ -256,7 +257,7 @@ Verify the cluster information:
 kubectl cluster-info
 ```
 
-## :white_check_mark: Checkpoint
+## Checkpoint
 
 Before proceeding, verify:
 
@@ -264,7 +265,7 @@ Before proceeding, verify:
 - [ ] `kubectl get nodes` shows 2 Ready nodes
 - [ ] `kubectl cluster-info` shows the cluster endpoint
 
-## :rocket: Stretch Goals
+## Stretch Goals
 
 If you finish early, try these challenges:
 
@@ -272,7 +273,7 @@ If you finish early, try these challenges:
 2. **Enable auto-scaling**: Configure the cluster autoscaler to scale between 2-4 nodes
 3. **Add custom tags**: Add your name as a tag to identify your cluster
 
-## :books: Learn More
+## Learn More
 
 - [DigitalOcean Kubernetes Documentation](https://docs.digitalocean.com/products/kubernetes/)
 - [Pulumi DigitalOcean Provider](https://www.pulumi.com/registry/packages/digitalocean/)
@@ -280,4 +281,4 @@ If you finish early, try these challenges:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 2: Deploy Kagent & MCP](02-deploy-kagent-mcp)
+**Next**: [Chapter 2: Deploy Kagent & MCP](02-deploy-kagent-mcp)

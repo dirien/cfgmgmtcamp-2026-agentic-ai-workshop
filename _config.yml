@@ -1,26 +1,22 @@
-theme: jekyll-theme-cayman
-title: Building AI-Assisted Operations - Agentic AI Workshop
-description: CfgMgmtCamp Ghent 2026 - Hands-on workshop for building AI-assisted operational workflows
-baseurl: ""
-url: "https://dirien.github.io/cfgmgmtcamp-2026-agentic-ai-workshop"
+title: "Building AI-Assisted Operations: Agentic AI Workshop"
+author: Engin Diri
 
-# Kramdown settings
+markdown: kramdown
+
 kramdown:
   input: GFM
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    css_class: highlight
 
-# Exclude files from site
-exclude:
-  - "*.ts"
-  - "*.json"
-  - node_modules
-  - "*/typescript/*"
-  - "*/yaml/*"
-  - instructor
-  - esc
-  - LICENSE
-  - .gitignore
-  - .devcontainer
-  - README.md
+plugins:
+- jekyll-relative-links
+
+relative_links:
+  enabled: true
+  collections: true
+
+include:
+- 00-introduction.md
+- 01-create-kubernetes-cluster.md
+- 02-deploy-kagent-mcp.md
+- 03-deploy-platform-workload.md
+- 04-multi-agent-troubleshooting.md
+- 05-housekeeping.md
