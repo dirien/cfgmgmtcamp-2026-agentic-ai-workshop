@@ -1,0 +1,7 @@
+name: 01-k8s-cluster
+runtime: nodejs
+description: DigitalOcean Kubernetes cluster for CfgMgmtCamp 2026 workshop
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: kubernetes-digitalocean-typescript

@@ -1,0 +1,122 @@
+name: 03-platform-workload
+runtime: yaml
+description: Deploy monitoring stack and sample application
+
+config:
+  grafanaAdminPassword:
+    type: string
+    secret: true
+    default: workshop-admin
+
+resources:
+  # Create monitoring namespace
+  monitoring-ns:
+    type: kubernetes:core/v1:Namespace
+    properties:
+      metadata:
+        name: monitoring
+
+  # Create apps namespace
+  apps-ns:
+    type: kubernetes:core/v1:Namespace
+    properties:
+      metadata:
+        name: apps
+
+  # Install Metrics Server
+  metrics-server:
+    type: kubernetes:helm.sh/v3:Release
+    properties:
+      chart: metrics-server
+      repositoryOpts:
+        repo: https://kubernetes-sigs.github.io/metrics-server/
+      namespace: kube-system
+      version: "3.12.2"
+      values:
+        args:
+          - --kubelet-insecure-tls
+
+  # Install kube-prometheus-stack
+  kube-prometheus-stack:
+    type: kubernetes:helm.sh/v3:Release
+    properties:
+      chart: kube-prometheus-stack
+      repositoryOpts:
+        repo: https://prometheus-community.github.io/helm-charts
+      namespace: ${monitoring-ns.metadata.name}
+      version: "66.3.1"
+      values:
+        grafana:
+          enabled: true
+          adminPassword: ${grafanaAdminPassword}
+          service:
+            type: LoadBalancer
+            port: 80
+        prometheus:
+          prometheusSpec:
+            retention: 24h
+            resources:
+              requests:
+                memory: 512Mi
+                cpu: 250m
+              limits:
+                memory: 1Gi
+                cpu: 500m
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+        alertmanager:
+          enabled: true
+          alertmanagerSpec:
+            resources:
+              requests:
+                memory: 64Mi
+                cpu: 50m
+              limits:
+                memory: 128Mi
+                cpu: 100m
+        kubeEtcd:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeProxy:
+          enabled: false
+    options:
+      dependsOn:
+        - ${monitoring-ns}
+
+  # Deploy Podinfo sample application
+  podinfo:
+    type: kubernetes:helm.sh/v3:Release
+    properties:
+      chart: podinfo
+      repositoryOpts:
+        repo: https://stefanprodan.github.io/podinfo
+      namespace: ${apps-ns.metadata.name}
+      version: "6.7.1"
+      values:
+        replicaCount: 2
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 100m
+          limits:
+            memory: 128Mi
+            cpu: 200m
+        service:
+          type: ClusterIP
+        serviceMonitor:
+          enabled: true
+          interval: 15s
+    options:
+      dependsOn:
+        - ${apps-ns}
+        - ${kube-prometheus-stack}
+
+outputs:
+  monitoringNamespace: ${monitoring-ns.metadata.name}
+  appsNamespace: ${apps-ns.metadata.name}
+  metricsServerStatus: ${metrics-server.status}
+  prometheusStackStatus: ${kube-prometheus-stack.status}
+  podinfoStatus: ${podinfo.status}

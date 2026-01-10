@@ -1,0 +1,17 @@
+{
+  "name": "do-genai-setup",
+  "version": "1.0.0",
+  "description": "Provision DigitalOcean GenAI Serverless Inference for workshop",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@pulumi/command": "^1.0.0",
+    "@pulumi/pulumi": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

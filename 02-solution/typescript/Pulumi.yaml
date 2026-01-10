@@ -1,0 +1,7 @@
+name: 02-kagent-mcp
+runtime: nodejs
+description: Deploy Kagent and kmcp to Kubernetes cluster
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: kubernetes-typescript

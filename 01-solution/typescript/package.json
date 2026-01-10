@@ -1,0 +1,11 @@
+{
+  "name": "01-k8s-cluster",
+  "main": "index.ts",
+  "devDependencies": {
+    "@types/node": "^22"
+  },
+  "dependencies": {
+    "@pulumi/digitalocean": "^4.36.0",
+    "@pulumi/pulumi": "^3.145.0"
+  }
+}

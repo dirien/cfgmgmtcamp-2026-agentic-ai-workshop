@@ -1,0 +1,11 @@
+name: do-genai-setup
+runtime: nodejs
+description: Provision DigitalOcean GenAI Serverless Inference for workshop
+
+config:
+  keyName:
+    type: string
+    default: "cfgmgmtcamp-workshop-2026"
+  model:
+    type: string
+    default: "anthropic-claude-opus-4.5"

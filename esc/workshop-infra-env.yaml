@@ -1,0 +1,22 @@
+# Pulumi ESC Environment Template for Infrastructure (Chapter 1)
+# This file is a TEMPLATE - the actual environment should be created in Pulumi Cloud
+#
+# Instructor: Create this environment before the workshop at:
+# https://app.pulumi.com/<org>/environments/workshop-infra-env
+#
+# Participants: Import this environment in your Chapter 1 Pulumi.yaml to get DO credentials
+
+values:
+  # DigitalOcean API Token (for creating Kubernetes clusters)
+  # This is a shared token provided by the instructor for the workshop
+  digitalocean:
+    token:
+      fn::secret: "your-do-api-token-here"
+
+  # Pulumi configuration values (available in Pulumi programs)
+  pulumiConfig:
+    digitalocean:token: ${digitalocean.token}
+
+  # Environment variables (available in shell)
+  environmentVariables:
+    DIGITALOCEAN_TOKEN: ${digitalocean.token}
