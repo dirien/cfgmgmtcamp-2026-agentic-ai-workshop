@@ -1,19 +1,20 @@
 ---
 title: "Chapter 3: Deploy Platform Workload"
+layout: default
 ---
 
 # Chapter 3: Deploy Platform Workload
 
 In this chapter, you'll deploy the monitoring stack that our AI agents will use to analyze the cluster. This includes Prometheus for metrics collection, Grafana for visualization, and a sample application (Podinfo) for testing.
 
-## :dart: Goals
+## Goals
 
 - Deploy Metrics Server for resource metrics
 - Deploy kube-prometheus-stack (Prometheus + Grafana + Alertmanager)
 - Deploy Podinfo as a sample application with metrics
 - Enable the PromQL agent to query metrics
 
-## :clock1: Estimated Time: 30 minutes
+## Estimated Time: 30 minutes
 
 ---
 
@@ -126,7 +127,7 @@ export const appsNamespace = appsNs.metadata.name;
 ```
 
 <details>
-<summary>:page_facing_up: Click to see YAML version</summary>
+<summary>Click to see YAML version</summary>
 
 ```yaml
 name: 03-platform-workload
@@ -231,7 +232,7 @@ pulumi stack init dev
 pulumi up
 ```
 
-:warning: This deployment takes 3-5 minutes as it installs several Helm charts.
+**Warning**: This deployment takes 3-5 minutes as it installs several Helm charts.
 
 ## Step 4: Verify the Deployment
 
@@ -307,32 +308,35 @@ rate(http_requests_total{app="podinfo"}[5m])
 
 ## Architecture Overview
 
+```mermaid
+graph TB
+    subgraph ks["kube-system"]
+        ms["Metrics Server"]
+        ms --> |"kubectl top, HPA"| usage["Resource Usage"]
+    end
+
+    subgraph mon["monitoring"]
+        prom["Prometheus<br/>(metrics)"]
+        graf["Grafana<br/>(dashboards)"]
+        alert["Alertmanager<br/>(alerts)"]
+    end
+
+    subgraph apps["apps"]
+        pod["Podinfo<br/>(2 replicas)"]
+        sm["ServiceMonitor"]
+        pod --> sm
+    end
+
+    sm --> prom
+    prom --> graf
+    prom --> alert
+
+    style ks fill:#e3f2fd,stroke:#1976d2
+    style mon fill:#e8f5e9,stroke:#388e3c
+    style apps fill:#fff3e0,stroke:#f57c00
 ```
-┌─────────────────────────────────────────────────────────┐
-│                   kube-system                           │
-│  ┌──────────────┐                                       │
-│  │Metrics Server│ → kubectl top, HPA                    │
-│  └──────────────┘                                       │
-└─────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────┐
-│                   monitoring                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
-│  │  Prometheus  │  │   Grafana    │  │ Alertmanager │  │
-│  │   (metrics)  │  │   (dashboards) │  │   (alerts)   │  │
-│  └──────────────┘  └──────────────┘  └──────────────┘  │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│                      apps                               │
-│  ┌──────────────┐                                       │
-│  │   Podinfo    │ → sample app with ServiceMonitor     │
-│  │  (2 replicas)│                                       │
-│  └──────────────┘                                       │
-└─────────────────────────────────────────────────────────┘
-```
-
-## :white_check_mark: Checkpoint
+## Checkpoint
 
 Before proceeding, verify:
 
@@ -342,13 +346,13 @@ Before proceeding, verify:
 - [ ] `kubectl top nodes` shows resource usage
 - [ ] promql-agent can answer questions about metrics
 
-## :rocket: Stretch Goals
+## Stretch Goals
 
 1. **Create a Custom Dashboard**: Import or create a Grafana dashboard for Podinfo metrics
 2. **Test Alerting**: Check the Alertmanager UI for any firing alerts
 3. **Explore ServiceMonitor**: Run `kubectl get servicemonitor -A` to see how Prometheus discovers metrics
 
-## :books: Learn More
+## Learn More
 
 - [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
 - [Prometheus Documentation](https://prometheus.io/docs/)
@@ -357,4 +361,4 @@ Before proceeding, verify:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 4: Multi-Agent Troubleshooting](04-multi-agent-troubleshooting)
+**Next**: [Chapter 4: Multi-Agent Troubleshooting](04-multi-agent-troubleshooting)

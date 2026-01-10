@@ -1,39 +1,41 @@
 ---
 title: "Chapter 4: Multi-Agent Troubleshooting"
+layout: default
 ---
 
 # Chapter 4: Multi-Agent Troubleshooting
 
-This is the grand finale! :tada: In this chapter, you'll create a multi-agent system where an **orchestrator agent** coordinates specialist agents to autonomously investigate and fix infrastructure issues.
+This is the grand finale! In this chapter, you'll create a multi-agent system where an **orchestrator agent** coordinates specialist agents to autonomously investigate and fix infrastructure issues.
 
-## :dart: Goals
+## Goals
 
 - Deploy the Pulumi Remote MCP server integration
 - Create a Pulumi Agent that can fix infrastructure code
 - Create an Orchestrator Agent that coordinates other agents
 - Deploy a faulty workload and watch the agents fix it!
 
-## :clock1: Estimated Time: 60 minutes
+## Estimated Time: 60 minutes
 
 ---
 
 ## The Multi-Agent Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Orchestrator Agent                           │
-│  "Investigate why podinfo-faulty is not running and fix it"    │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-         ┌───────────────┼───────────────┐
-         │               │               │
-         ▼               ▼               ▼
-┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│  K8s Agent  │  │ PromQL Agent│  │Pulumi Agent │
-│             │  │             │  │             │
-│ "Check pod  │  │ "Analyze    │  │ "Create a   │
-│  status"    │  │  resources" │  │  fix PR"    │
-└─────────────┘  └─────────────┘  └─────────────┘
+```mermaid
+graph TD
+    orch["Orchestrator Agent<br/>Investigate why podinfo-faulty is not running and fix it"]
+
+    orch --> k8s
+    orch --> promql
+    orch --> pulumi
+
+    k8s["K8s Agent<br/>Check pod status"]
+    promql["PromQL Agent<br/>Analyze resources"]
+    pulumi["Pulumi Agent<br/>Create a fix PR"]
+
+    style orch fill:#6366f1,stroke:#4f46e5,color:#fff
+    style k8s fill:#22c55e,stroke:#16a34a,color:#fff
+    style promql fill:#22c55e,stroke:#16a34a,color:#fff
+    style pulumi fill:#22c55e,stroke:#16a34a,color:#fff
 ```
 
 ## How A2A (Agent-to-Agent) Works
@@ -195,7 +197,7 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
 });
 ```
 
-:bug: **The Bug**: This pod requests 8Gi of memory, but our nodes only have 8GB total (with system overhead). It will be stuck in Pending forever!
+**The Bug**: This pod requests 8Gi of memory, but our nodes only have 8GB total (with system overhead). It will be stuck in Pending forever!
 
 ## Step 3: Configure the Stack
 
@@ -249,7 +251,7 @@ Events:
   Warning  FailedScheduling  Insufficient memory
 ```
 
-## Step 6: The Demo - Watch the Magic! :magic_wand:
+## Step 6: The Demo - Watch the Magic!
 
 1. Open the Kagent dashboard
 2. Select **orchestrator-agent** from the sidebar
@@ -272,27 +274,22 @@ Investigate why podinfo-faulty is not running and fix it
 
 ## Understanding the Flow
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                         USER                                      │
-│        "Investigate why podinfo-faulty is not running"           │
-└─────────────────────────────┬────────────────────────────────────┘
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                    ORCHESTRATOR AGENT                            │
-│                                                                  │
-│  1. "I need to check the pod status first"                      │
-│     → Calls k8s-agent                                            │
-│                                                                  │
-│  2. "The pod is Pending. Let me check resources"                │
-│     → Calls promql-agent                                         │
-│                                                                  │
-│  3. "Found the issue: 8Gi request on 8GB nodes"                 │
-│     → Calls pulumi-agent to create fix                           │
-│                                                                  │
-│  4. "PR created! Memory request changed to 128Mi"               │
-└──────────────────────────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant O as Orchestrator Agent
+    participant K as K8s Agent
+    participant P as PromQL Agent
+    participant PU as Pulumi Agent
+
+    U->>O: Investigate why podinfo-faulty is not running
+    O->>K: Check pod status
+    K-->>O: Pod is Pending
+    O->>P: Analyze resources
+    P-->>O: 8Gi request on 8GB nodes
+    O->>PU: Create fix PR
+    PU-->>O: PR created!
+    O-->>U: Memory request changed to 128Mi
 ```
 
 ## Step 7: Review the PR
@@ -303,7 +300,7 @@ If you have a GitHub repository connected to Pulumi Neo, check for a new pull re
 - **Changes**: `memory: "8Gi"` → `memory: "128Mi"`
 - **Description**: Explanation of the issue and fix
 
-## :white_check_mark: Checkpoint
+## Checkpoint
 
 Verify:
 
@@ -337,21 +334,21 @@ The DigitalOcean GenAI endpoint might be slow. Wait and retry, or check the mode
 kubectl get modelconfig -n kagent -o yaml
 ```
 
-## :rocket: Stretch Goals
+## Stretch Goals
 
 1. **Add Human-in-the-Loop**: Modify the orchestrator to ask for confirmation before creating PRs
 2. **Create a Slack Agent**: Add notifications when issues are detected
 3. **Add Custom Tools**: Create an MCP server with tools specific to your infrastructure
 4. **Implement Rollback**: Add an agent that can rollback failed deployments
 
-## :books: Learn More
+## Learn More
 
 - [Kagent A2A Agents](https://kagent.dev/docs/kagent/examples/a2a-agents)
 - [Pulumi Remote MCP](https://www.pulumi.com/docs/pulumi-cloud/ai/)
 - [Model Context Protocol Spec](https://spec.modelcontextprotocol.io/)
 - [Kubernetes Scheduling](https://kubernetes.io/docs/concepts/scheduling-eviction/)
 
-## :tada: Congratulations!
+## Congratulations!
 
 You've built a multi-agent system that can:
 - Diagnose Kubernetes issues autonomously
@@ -366,4 +363,4 @@ This is just the beginning! The patterns you've learned can be extended to:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 5: Housekeeping](05-housekeeping)
+**Next**: [Chapter 5: Housekeeping](05-housekeeping)

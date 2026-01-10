@@ -1,16 +1,17 @@
 ---
 title: Introduction
+layout: default
 ---
 
 # Building AI-Assisted Operations: Agentic AI Workshop
 
-Welcome to the **Agentic AI Workshop** at CfgMgmtCamp Ghent 2026! :wave:
+Welcome to the **Agentic AI Workshop** at CfgMgmtCamp Ghent 2026!
 
 In this hands-on workshop, you'll learn how to build AI-assisted operational workflows using Kubernetes-native AI agents. By the end of this workshop, you'll have a multi-agent system that can autonomously investigate and fix infrastructure issues.
 
-## :dart: What You'll Build
+## What You'll Build
 
-<div class="mermaid">
+```mermaid
 graph TD
     A[Orchestrator Agent<br/>Coordinates investigation and remediation] --> B[K8s Agent<br/>Diagnose]
     A --> C[PromQL Agent<br/>Metrics]
@@ -27,19 +28,14 @@ graph TD
     style E fill:#f59e0b,stroke:#d97706,color:#fff
     style F fill:#f59e0b,stroke:#d97706,color:#fff
     style G fill:#f59e0b,stroke:#d97706,color:#fff
-</div>
-
-<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({ startOnLoad: true });
-</script>
+```
 
 Your multi-agent system will:
 - **Diagnose** Kubernetes issues (pods, deployments, events)
 - **Analyze** metrics and resource utilization
 - **Create** pull requests to fix infrastructure code
 
-## :books: Workshop Chapters
+## Workshop Chapters
 
 | Chapter | Title | Duration |
 |---------|-------|----------|
@@ -49,7 +45,7 @@ Your multi-agent system will:
 | [04](04-multi-agent-troubleshooting) | Multi-Agent Troubleshooting | 60 min |
 | [05](05-housekeeping) | Cleanup | 15 min |
 
-## :white_check_mark: Prerequisites
+## Prerequisites
 
 Before starting, make sure you have:
 
@@ -58,7 +54,7 @@ Before starting, make sure you have:
 - [x] Basic understanding of Kubernetes concepts
 - [x] Familiarity with TypeScript or YAML
 
-## :rocket: Getting Started
+## Getting Started
 
 ### Option 1: GitHub Codespaces (Recommended)
 
@@ -85,7 +81,7 @@ Click the button below to open this repository in GitHub Codespaces with all too
    pulumi login
    ```
 
-## :key: Workshop Credentials
+## Workshop Credentials
 
 Your instructor will provide:
 - **LLM Endpoint**: Pre-configured DigitalOcean GenAI endpoint
@@ -93,14 +89,14 @@ Your instructor will provide:
 
 These credentials are automatically available when you use the workshop's Pulumi ESC environment.
 
-## :bulb: Tips for Success
+## Tips for Success
 
 1. **Follow the chapters in order** - Each chapter builds on the previous one
 2. **Don't skip the verification steps** - They help catch issues early
 3. **Ask questions!** - The instructors are here to help
 4. **Experiment** - Try modifying the agents and see what happens
 
-## :link: Resources
+## Resources
 
 - [Pulumi Documentation](https://www.pulumi.com/docs/)
 - [Kagent Documentation](https://kagent.dev/docs/)
