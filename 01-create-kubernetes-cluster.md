@@ -280,4 +280,4 @@ If you finish early, try these challenges:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 2: Deploy Kagent & MCP](02-deploy-kagent-mcp.md)
+:arrow_forward: **Next**: [Chapter 2: Deploy Kagent & MCP](02-deploy-kagent-mcp)

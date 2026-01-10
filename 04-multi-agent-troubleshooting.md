@@ -366,4 +366,4 @@ This is just the beginning! The patterns you've learned can be extended to:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 5: Housekeeping](05-housekeeping.md)
+:arrow_forward: **Next**: [Chapter 5: Housekeeping](05-housekeeping)

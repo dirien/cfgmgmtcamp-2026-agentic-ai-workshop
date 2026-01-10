@@ -43,11 +43,11 @@ Your multi-agent system will:
 
 | Chapter | Title | Duration |
 |---------|-------|----------|
-| [01](01-create-kubernetes-cluster.md) | Create Kubernetes Cluster | 30 min |
-| [02](02-deploy-kagent-mcp.md) | Deploy Kagent & MCP | 45 min |
-| [03](03-deploy-platform-workload.md) | Deploy Platform Workload | 30 min |
-| [04](04-multi-agent-troubleshooting.md) | Multi-Agent Troubleshooting | 60 min |
-| [05](05-housekeeping.md) | Cleanup | 15 min |
+| [01](01-create-kubernetes-cluster) | Create Kubernetes Cluster | 30 min |
+| [02](02-deploy-kagent-mcp) | Deploy Kagent & MCP | 45 min |
+| [03](03-deploy-platform-workload) | Deploy Platform Workload | 30 min |
+| [04](04-multi-agent-troubleshooting) | Multi-Agent Troubleshooting | 60 min |
+| [05](05-housekeeping) | Cleanup | 15 min |
 
 ## :white_check_mark: Prerequisites
 
@@ -109,4 +109,4 @@ These credentials are automatically available when you use the workshop's Pulumi
 
 ---
 
-Ready to begin? Let's start with [Chapter 1: Create Kubernetes Cluster](01-create-kubernetes-cluster.md)!
+Ready to begin? Let's start with [Chapter 1: Create Kubernetes Cluster](01-create-kubernetes-cluster)!
