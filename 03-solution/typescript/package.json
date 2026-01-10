@@ -1,0 +1,11 @@
+{
+  "name": "03-platform-workload",
+  "main": "index.ts",
+  "devDependencies": {
+    "@types/node": "^22"
+  },
+  "dependencies": {
+    "@pulumi/kubernetes": "^4.18.0",
+    "@pulumi/pulumi": "^3.145.0"
+  }
+}

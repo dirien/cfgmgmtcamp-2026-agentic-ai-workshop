@@ -1,0 +1,44 @@
+# Pulumi ESC Environment Template for Workload (Chapter 2+)
+# This file is a TEMPLATE - the actual environment should be created in Pulumi Cloud
+#
+# Instructor: Create this environment before Chapter 2 at:
+# https://app.pulumi.com/<org>/environments/workshop-workload-env
+#
+# Participants: Import this environment in your Chapter 2+ Pulumi.yaml
+# This environment retrieves kubeconfig from Chapter 1 via stack reference
+
+values:
+  # Get kubeconfig from Chapter 1 stack using stack reference
+  # This enables automatic connection to the K8s cluster created in Chapter 1
+  stacks:
+    fn::open::pulumi-stacks:
+      stacks:
+        k8s-cluster:
+          stack: 01-k8s-cluster/dev
+
+  kubeconfig: ${stacks.k8s-cluster.kubeconfig}
+
+  # DigitalOcean GenAI Configuration
+  llm:
+    endpoint: "https://inference.do-ai.run/v1"
+    model: "llama3.3-70b-instruct"
+    # Replace with actual API key from DO GenAI console
+    apiKey:
+      fn::secret: "your-do-genai-api-key-here"
+
+  # Pulumi configuration values (available in Pulumi programs)
+  pulumiConfig:
+    llmEndpoint: ${llm.endpoint}
+    llmModel: ${llm.model}
+    llmApiKey: ${llm.apiKey}
+    kubernetes:kubeconfig: ${kubeconfig}
+
+  # Environment variables (available in shell)
+  environmentVariables:
+    OPENAI_API_BASE: ${llm.endpoint}
+    OPENAI_API_KEY: ${llm.apiKey}
+    LLM_MODEL: ${llm.model}
+
+  # Kubeconfig as file (for kubectl and other tools)
+  files:
+    KUBECONFIG: ${kubeconfig}

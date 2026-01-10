@@ -16,14 +16,27 @@ workflows using Agents supported by MCPs (Model Context Protocols).
 
 ## What You'll Build
 
-In this workshop, you'll create a multi-agent architecture for automating DevOps investigations during deployment
-failures. Your AI systems will:
+In this workshop, you'll create a multi-agent architecture using [Kagent](https://kagent.dev/) (a CNCF sandbox project) for automating DevOps investigations during deployment failures. Your AI systems will:
 
-- Monitor different operational areas (infrastructure, deployments, version control)
-- Independently identify configuration inconsistencies across Kubernetes environments
-- Coordinate information across ArgoCD sync issues and infrastructure code changes
-- Integrate with GitHub to review commits and create fix proposals
-- Require human validation before executing sensitive operations
+- **Diagnose** Kubernetes issues using a specialized K8s agent
+- **Analyze** metrics and resource utilization with a PromQL agent
+- **Fix** infrastructure code by creating pull requests via Pulumi Neo
+- **Orchestrate** multiple agents that coordinate autonomously to investigate and resolve issues
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Orchestrator Agent                           │
+│         (Coordinates investigation and remediation)             │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+         ▼               ▼               ▼
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│  K8s Agent  │  │ PromQL Agent│  │Pulumi Agent │
+│  (Diagnose) │  │  (Metrics)  │  │  (Fix PRs)  │
+└─────────────┘  └─────────────┘  └─────────────┘
+```
 
 ## Speakers
 
@@ -44,15 +57,14 @@ To participate in this workshop, you'll need:
 
 ## Workshop Content
 
-> Coming soon! Workshop chapters will be added as we finalize the content.
-
-<!--
-- [Chapter 00 - Setup and Introduction](00-setup-introduction.md)
-- [Chapter 01 - Understanding MCP and Agents](01-understanding-mcp-agents.md)
-- [Chapter 02 - Building Your First Agent](02-building-first-agent.md)
-- [Chapter 03 - Multi-Agent Architecture](03-multi-agent-architecture.md)
-- [Chapter 04 - Human-in-the-Loop Validation](04-human-in-the-loop.md)
--->
+| Chapter | Title | Duration |
+|---------|-------|----------|
+| [00](00-introduction.md) | Introduction | 10 min |
+| [01](01-create-kubernetes-cluster.md) | Create Kubernetes Cluster | 30 min |
+| [02](02-deploy-kagent-mcp.md) | Deploy Kagent & MCP | 45 min |
+| [03](03-deploy-platform-workload.md) | Deploy Platform Workload | 30 min |
+| [04](04-multi-agent-troubleshooting.md) | Multi-Agent Troubleshooting | 60 min |
+| [05](05-housekeeping.md) | Cleanup | 15 min |
 
 ## Getting Started
 
@@ -84,7 +96,8 @@ If you encounter any issues during the workshop:
 ## Want to Know More?
 
 - [Pulumi Documentation](https://www.pulumi.com/docs/)
-- [Pulumi AI](https://www.pulumi.com/ai/)
+- [Pulumi AI & MCP](https://www.pulumi.com/docs/pulumi-cloud/ai/)
+- [Kagent Documentation](https://kagent.dev/docs/)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 - [CfgMgmtCamp 2026](https://cfgmgmtcamp.org/)
 

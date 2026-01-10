@@ -1,0 +1,7 @@
+name: 03-platform-workload
+runtime: nodejs
+description: Deploy monitoring stack and sample application
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: kubernetes-typescript

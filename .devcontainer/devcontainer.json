@@ -14,16 +14,13 @@
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts"
     },
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.12"
-    },
-    "ghcr.io/devcontainers-contrib/features/pulumi:1": {}
+    "ghcr.io/devcontainers-contrib/features/pulumi:1": {},
+    "ghcr.io/devcontainers-contrib/features/doctl:1": {}
   },
   "customizations": {
     "vscode": {
       "extensions": [
         "pulumi.pulumi-vscode",
-        "ms-python.python",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
         "redhat.vscode-yaml",
         "GitHub.copilot"

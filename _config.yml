@@ -1,3 +1,25 @@
 theme: jekyll-theme-cayman
 title: Building AI-Assisted Operations - Agentic AI Workshop
 description: CfgMgmtCamp Ghent 2026 - Hands-on workshop for building AI-assisted operational workflows
+baseurl: ""
+url: "https://dirien.github.io/cfgmgmtcamp-2026-agentic-ai-workshop"
+
+# Kramdown settings
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: highlight
+
+# Exclude files from site
+exclude:
+  - "*.ts"
+  - "*.json"
+  - node_modules
+  - "*/typescript/*"
+  - "*/yaml/*"
+  - instructor
+  - esc
+  - LICENSE
+  - .gitignore
+  - .devcontainer

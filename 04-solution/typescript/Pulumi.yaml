@@ -1,0 +1,7 @@
+name: 04-multi-agent
+runtime: nodejs
+description: Multi-agent setup with Pulumi agent, orchestrator, and faulty demo deployment
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: kubernetes-typescript

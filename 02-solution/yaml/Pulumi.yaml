@@ -1,0 +1,95 @@
+name: 02-kagent-mcp
+runtime: yaml
+description: Deploy Kagent and kmcp to Kubernetes cluster
+
+config:
+  llmApiKey:
+    type: string
+    secret: true
+  llmEndpoint:
+    type: string
+    default: "https://inference.do-ai.run/v1"
+  llmModel:
+    type: string
+    default: "llama3.3-70b-instruct"
+
+resources:
+  # Create kagent namespace
+  kagent-ns:
+    type: kubernetes:core/v1:Namespace
+    properties:
+      metadata:
+        name: kagent
+
+  # Create secret for LLM API key (must exist before kagent helm release)
+  # The secret name must match apiKeySecretRef and key must match apiKeySecretKey
+  kagent-openai:
+    type: kubernetes:core/v1:Secret
+    properties:
+      metadata:
+        name: kagent-openai
+        namespace: ${kagent-ns.metadata.name}
+      stringData:
+        OPENAI_API_KEY: ${llmApiKey}
+    options:
+      dependsOn:
+        - ${kagent-ns}
+
+  # Install Kagent CRDs (includes kmcp-crds as dependency)
+  kagent-crds:
+    type: kubernetes:helm.sh/v3:Release
+    properties:
+      chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
+      namespace: ${kagent-ns.metadata.name}
+      version: "0.7.8"
+      values:
+        kmcp:
+          enabled: true
+    options:
+      dependsOn:
+        - ${kagent-ns}
+
+  # Install Kagent with DigitalOcean GenAI as OpenAI-compatible provider
+  # Note: kagent chart includes kmcp as a dependency when kmcp.enabled is true
+  kagent:
+    type: kubernetes:helm.sh/v3:Release
+    properties:
+      chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent
+      namespace: ${kagent-ns.metadata.name}
+      version: "0.7.8"
+      values:
+        # Configure the model provider
+        providers:
+          default: openAI
+          openAI:
+            provider: OpenAI
+            model: ${llmModel}
+            apiKeySecretRef: kagent-openai
+            apiKeySecretKey: OPENAI_API_KEY
+            config:
+              baseUrl: ${llmEndpoint}
+        # UI configuration
+        ui:
+          enabled: true
+          service:
+            type: LoadBalancer
+            ports:
+              port: 8080
+        # Enable kmcp (included as subchart dependency)
+        kmcp:
+          enabled: true
+        # Enable built-in agents
+        agents:
+          k8s-agent:
+            enabled: true
+          promql-agent:
+            enabled: true
+    options:
+      dependsOn:
+        - ${kagent-crds}
+        - ${kagent-openai}
+
+outputs:
+  namespace: ${kagent-ns.metadata.name}
+  kagentVersion: "0.7.8"
+  kagentReleaseName: ${kagent.name}
