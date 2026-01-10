@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page.title }} | {{ site.title }}</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@primer/css@21/dist/primer.css">
   <style>
+    body {
+      background-color: var(--bgColor-default, var(--color-canvas-default));
+    }
     .markdown-body {
       box-sizing: border-box;
       min-width: 200px;
@@ -31,15 +34,118 @@
     code.language-mermaid {
       background: transparent !important;
     }
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: var(--bgColor-muted, var(--color-canvas-subtle));
+      border: 1px solid var(--borderColor-default, var(--color-border-default));
+      border-radius: 6px;
+      padding: 8px;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 1000;
+    }
+    .theme-toggle:hover {
+      background: var(--bgColor-neutral-muted, var(--color-neutral-muted));
+    }
+    .header-link {
+      color: var(--fgColor-accent, var(--color-accent-fg));
+      text-decoration: none;
+    }
+    .header-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
+  <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+    <span id="theme-icon"></span>
+  </button>
   <article class="markdown-body">
+    <header>
+      <h1><a href="{{ '/' | relative_url }}" class="header-link">{{ site.title }}</a></h1>
+      <hr>
+    </header>
     {{ content }}
   </article>
+  <script>
+    (function() {
+      const toggle = document.getElementById('theme-toggle');
+      const icon = document.getElementById('theme-icon');
+      const html = document.documentElement;
+
+      function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      function getStoredTheme() {
+        return localStorage.getItem('theme');
+      }
+
+      function setTheme(mode) {
+        if (mode === 'auto') {
+          html.setAttribute('data-color-mode', 'auto');
+          localStorage.removeItem('theme');
+        } else {
+          html.setAttribute('data-color-mode', mode);
+          localStorage.setItem('theme', mode);
+        }
+        updateIcon(mode);
+      }
+
+      function updateIcon(mode) {
+        if (mode === 'auto') {
+          icon.textContent = getSystemTheme() === 'dark' ? '🌙' : '☀️';
+        } else {
+          icon.textContent = mode === 'dark' ? '🌙' : '☀️';
+        }
+      }
+
+      function cycleTheme() {
+        const current = html.getAttribute('data-color-mode');
+        if (current === 'auto') {
+          setTheme(getSystemTheme() === 'dark' ? 'light' : 'dark');
+        } else if (current === 'light') {
+          setTheme('dark');
+        } else {
+          setTheme('auto');
+        }
+      }
+
+      // Initialize
+      const stored = getStoredTheme();
+      if (stored) {
+        setTheme(stored);
+      } else {
+        setTheme('auto');
+      }
+
+      // Listen for system theme changes
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (html.getAttribute('data-color-mode') === 'auto') {
+          updateIcon('auto');
+        }
+      });
+
+      toggle.addEventListener('click', cycleTheme);
+    })();
+  </script>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: true });
+
+    function getMermaidTheme() {
+      const colorMode = document.documentElement.getAttribute('data-color-mode');
+      if (colorMode === 'auto') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default';
+      }
+      return colorMode === 'dark' ? 'dark' : 'default';
+    }
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: getMermaidTheme()
+    });
     await mermaid.run({
       querySelector: '.language-mermaid',
     });
