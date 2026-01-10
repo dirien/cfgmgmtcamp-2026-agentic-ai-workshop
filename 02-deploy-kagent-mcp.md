@@ -431,4 +431,4 @@ Before proceeding, verify:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 3: Deploy Platform Workload](03-deploy-platform-workload.md)
+:arrow_forward: **Next**: [Chapter 3: Deploy Platform Workload](03-deploy-platform-workload)

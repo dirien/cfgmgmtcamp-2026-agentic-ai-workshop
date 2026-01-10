@@ -357,4 +357,4 @@ Before proceeding, verify:
 
 ---
 
-:arrow_forward: **Next**: [Chapter 4: Multi-Agent Troubleshooting](04-multi-agent-troubleshooting.md)
+:arrow_forward: **Next**: [Chapter 4: Multi-Agent Troubleshooting](04-multi-agent-troubleshooting)
