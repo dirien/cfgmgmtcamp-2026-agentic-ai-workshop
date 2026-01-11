@@ -25,7 +25,7 @@ In this chapter, you'll deploy [Kagent](https://kagent.dev/) - a Kubernetes-nati
 Kagent is a CNCF sandbox project that brings agentic AI to Kubernetes. It provides:
 
 - **Custom Resource Definitions (CRDs)** for defining agents declaratively
-- **Built-in agents** for Kubernetes operations (k8s-agent, promql-agent)
+- **Built-in agents** for Kubernetes operations (k8s-agent, promql-agent, observability-agent)
 - **MCP integration** for connecting to external tools and services
 - **A web UI** for interacting with agents via chat
 
@@ -196,6 +196,14 @@ const kagent = new k8s.helm.v3.Release("kagent", {
         agents: {
             "k8s-agent": { enabled: true },
             "promql-agent": { enabled: true },
+            "observability-agent": { enabled: true },
+        },
+        // Configure grafana-mcp with consistent naming (for observability-agent)
+        "grafana-mcp": {
+            fullnameOverride: "kagent-grafana-mcp",
+            grafana: {
+                url: "http://kube-prometheus-stack-grafana.monitoring:80",
+            },
         },
     },
 }, { dependsOn: [kagentCrds, llmSecret] });
@@ -301,6 +309,13 @@ resources:
             enabled: true
           promql-agent:
             enabled: true
+          observability-agent:
+            enabled: true
+        # Configure grafana-mcp with consistent naming (for observability-agent)
+        grafana-mcp:
+          fullnameOverride: kagent-grafana-mcp
+          grafana:
+            url: "http://kube-prometheus-stack-grafana.monitoring:80"
     options:
       dependsOn:
         - ${kagent-crds}
@@ -341,7 +356,7 @@ This will install:
 - kmcp CRDs (automatically via kagent-crds subchart)
 - Kagent controller and UI
 - kmcp controller (automatically via kagent subchart)
-- Built-in k8s-agent and promql-agent
+- Built-in k8s-agent, promql-agent, and observability-agent
 
 ## Step 6: Get the Dashboard URL
 
@@ -366,7 +381,7 @@ echo "Dashboard URL: http://$KAGENT_IP:8080"
 
 Open the Kagent dashboard in your browser. You should see:
 
-1. **Agents List**: k8s-agent and promql-agent are available
+1. **Agents List**: k8s-agent, promql-agent, and observability-agent are available
 2. **Chat Interface**: Select an agent to start chatting
 3. **Tools**: Each agent has access to specific tools
 
@@ -379,9 +394,16 @@ Open the Kagent dashboard in your browser. You should see:
 ### Try the PromQL Agent
 
 1. Select **promql-agent** from the sidebar
-2. Ask: "What is the current CPU usage across all nodes?"
+2. Ask: "Generate a PromQL query to show CPU usage across all nodes"
 
-**Note**: PromQL agent requires Prometheus to be deployed (we'll do this in Chapter 3)
+**Note**: The promql-agent generates PromQL queries from natural language descriptions but doesn't execute them.
+
+### Try the Observability Agent
+
+1. Select **observability-agent** from the sidebar
+2. Ask: "What is the CPU usage of pods in the kube-system namespace?"
+
+**Note**: The observability-agent can execute queries against Prometheus and return real metrics. It requires Prometheus and Grafana to be deployed (we'll do this in Chapter 3). Until then, the agent will show as `READY: Unknown`.
 
 ## Step 8: Verify the Installation
 
@@ -405,7 +427,7 @@ Before proceeding, verify:
 - [ ] All pods in `kagent` namespace are Running
 - [ ] Dashboard is accessible via LoadBalancer IP
 - [ ] k8s-agent responds to queries in the chat
-- [ ] `pulumi env run ... -- kubectl get agents -n kagent` shows k8s-agent and promql-agent
+- [ ] `pulumi env run ... -- kubectl get agents -n kagent` shows k8s-agent, promql-agent, and observability-agent
 
 ## Understanding the Architecture
 
@@ -420,6 +442,7 @@ graph TB
         subgraph agents["Agents"]
             k8s["k8s-agent<br/>(Agent)"]
             promql["promql-agent<br/>(Agent)"]
+            obs["observability-agent<br/>(Agent)"]
             more["... more agents"]
         end
         subgraph config["Configuration"]

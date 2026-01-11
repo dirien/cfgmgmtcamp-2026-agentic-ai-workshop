@@ -26,12 +26,18 @@ values:
     apiKey:
       fn::secret: "your-do-genai-api-key-here"
 
+  # Grafana configuration (Chapter 3)
+  grafana:
+    adminPassword:
+      fn::secret: "workshop-admin"
+
   # Pulumi configuration values (available in Pulumi programs)
   pulumiConfig:
     llmEndpoint: ${llm.endpoint}
     llmModel: ${llm.model}
     llmApiKey: ${llm.apiKey}
     kubernetes:kubeconfig: ${kubeconfig}
+    grafanaAdminPassword: ${grafana.adminPassword}
 
   # Environment variables (available in shell)
   environmentVariables:

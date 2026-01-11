@@ -31,7 +31,7 @@ resources:
       repositoryOpts:
         repo: https://kubernetes-sigs.github.io/metrics-server/
       namespace: kube-system
-      version: "3.12.2"
+      version: "3.13.0"
       values:
         args:
           - --kubelet-insecure-tls
@@ -40,11 +40,12 @@ resources:
   kube-prometheus-stack:
     type: kubernetes:helm.sh/v3:Release
     properties:
+      name: kube-prometheus-stack  # Explicit release name to avoid Pulumi suffix
       chart: kube-prometheus-stack
       repositoryOpts:
         repo: https://prometheus-community.github.io/helm-charts
       namespace: ${monitoring-ns.metadata.name}
-      version: "66.3.1"
+      version: "80.13.3"
       values:
         grafana:
           enabled: true
@@ -52,6 +53,13 @@ resources:
           service:
             type: LoadBalancer
             port: 80
+          sidecar:
+            datasources:
+              initDatasources: true
+          grafana.ini:
+            auth.anonymous:
+              enabled: true
+              org_role: Viewer
         prometheus:
           prometheusSpec:
             retention: 24h
@@ -94,7 +102,7 @@ resources:
       repositoryOpts:
         repo: https://stefanprodan.github.io/podinfo
       namespace: ${apps-ns.metadata.name}
-      version: "6.7.1"
+      version: "6.9.4"
       values:
         replicaCount: 2
         resources:

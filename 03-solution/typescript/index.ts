@@ -22,7 +22,7 @@ const metricsServer = new k8s.helm.v3.Release("metrics-server", {
         repo: "https://kubernetes-sigs.github.io/metrics-server/",
     },
     namespace: "kube-system",
-    version: "3.12.2",
+    version: "3.13.0",
     values: {
         args: [
             "--kubelet-insecure-tls",
@@ -32,12 +32,13 @@ const metricsServer = new k8s.helm.v3.Release("metrics-server", {
 
 // Install kube-prometheus-stack (Prometheus, Grafana, Alertmanager)
 const prometheusStack = new k8s.helm.v3.Release("kube-prometheus-stack", {
+    name: "kube-prometheus-stack", // Explicit release name to avoid Pulumi suffix
     chart: "kube-prometheus-stack",
     repositoryOpts: {
         repo: "https://prometheus-community.github.io/helm-charts",
     },
     namespace: monitoringNs.metadata.name,
-    version: "66.3.1",
+    version: "80.13.3",
     values: {
         // Grafana configuration
         grafana: {
@@ -47,9 +48,20 @@ const prometheusStack = new k8s.helm.v3.Release("kube-prometheus-stack", {
                 type: "LoadBalancer",
                 port: 80,
             },
+            // Ensure datasources are provisioned before Grafana starts
+            sidecar: {
+                datasources: {
+                    initDatasources: true,
+                },
+            },
             "grafana.ini": {
                 server: {
                     root_url: "%(protocol)s://%(domain)s/",
+                },
+                // Enable anonymous access for observability-agent
+                "auth.anonymous": {
+                    enabled: true,
+                    org_role: "Viewer",
                 },
             },
         },
@@ -103,7 +115,7 @@ const podinfo = new k8s.helm.v3.Release("podinfo", {
         repo: "https://stefanprodan.github.io/podinfo",
     },
     namespace: appsNs.metadata.name,
-    version: "6.7.1",
+    version: "6.9.4",
     values: {
         replicaCount: 2,
         resources: {

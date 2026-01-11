@@ -77,6 +77,14 @@ const kagent = new k8s.helm.v3.Release("kagent", {
         agents: {
             "k8s-agent": { enabled: true },
             "promql-agent": { enabled: true },
+            "observability-agent": { enabled: true },
+        },
+        // Configure grafana-mcp with consistent naming
+        "grafana-mcp": {
+            fullnameOverride: "kagent-grafana-mcp",
+            grafana: {
+                url: "http://kube-prometheus-stack-grafana.monitoring:80",
+            },
         },
     },
 }, { dependsOn: [kagentCrds, llmSecret] });
