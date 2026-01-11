@@ -35,10 +35,10 @@ Kagent is a CNCF sandbox project that brings agentic AI to Kubernetes. It provid
 
 ### Why Separate Environments?
 
-- **Infrastructure environment** (`workshop-infra-env`): Contains cloud provider credentials (DO token) for creating infrastructure
-- **Workload environment** (`workshop-workload-env`): Contains kubeconfig (via stack reference) and application credentials (LLM API keys)
+- **Infrastructure environment** (`workshop`): Contains cloud provider credentials (DO token) for creating infrastructure
+- **Workload environment** (`workload`): Contains kubeconfig (via stack reference) and application credentials (LLM API keys)
 
-This separation follows the principle of least privilege - workload deployments don't need cloud provider credentials.
+Both environments live in the same ESC project (`cfgmgmtcamp-2026-workshop-infra-env`). This separation follows the principle of least privilege - workload deployments don't need cloud provider credentials.
 
 ### Create the Workload ESC Environment
 
@@ -46,7 +46,7 @@ This separation follows the principle of least privilege - workload deployments 
 
 2. Go to **Environments** in the left sidebar and click **Create environment**
 
-3. Name your environment `workshop-workload-env` and click **Create**
+3. Select the existing ESC project `cfgmgmtcamp-2026-workshop-infra-env` and name the environment `workload`, then click **Create**. This creates the path `cfgmgmtcamp-2026-workshop-infra-env/workload`
 
 4. In the environment editor, add the following YAML configuration:
 
@@ -54,18 +54,19 @@ This separation follows the principle of least privilege - workload deployments 
 values:
   # Get kubeconfig from Chapter 1 stack using stack reference
   # This enables automatic connection to the K8s cluster created in Chapter 1
+  # Replace <your-org> with your Pulumi organization name
   stacks:
     fn::open::pulumi-stacks:
       stacks:
         k8s-cluster:
-          stack: 01-k8s-cluster/dev
+          stack: <your-org>/cfgmgmtcamp-2026-agentic-ai-workshop/dev
 
   kubeconfig: ${stacks.k8s-cluster.kubeconfig}
 
   # DigitalOcean GenAI Configuration
   llm:
     endpoint: "https://inference.do-ai.run/v1"
-    model: "llama3.3-70b-instruct"
+    model: "anthropic-claude-opus-4.5"
     apiKey:
       fn::secret: "your-do-genai-api-key-here"
 
@@ -87,22 +88,33 @@ values:
     KUBECONFIG: ${kubeconfig}
 ```
 
-5. Replace `your-do-genai-api-key-here` with your actual DigitalOcean GenAI API key
+5. Replace the following placeholders:
+   - `<your-org>` with your Pulumi organization name (find it at the top of Pulumi Cloud or run `pulumi whoami -v`)
+   - `your-do-genai-api-key-here` with your actual DigitalOcean GenAI API key
 
 6. Click **Save** to save the environment
 
 The key feature is the `pulumi-stacks` provider which retrieves the `kubeconfig` output from your Chapter 1 stack automatically.
 
-## Step 2: Navigate to the Solution Directory
+## Step 2: Create the Project Directory
+
+Create a new directory for this chapter's code:
 
 ```bash
-cd 02-solution/typescript
-npm install
+mkdir -p cfgmgmtcamp-2026-kagent
+cd cfgmgmtcamp-2026-kagent
+pulumi new typescript -f
 ```
 
-## Step 3: Review the Code
+Install the Kubernetes provider:
 
-Here's the Pulumi program that deploys Kagent and kmcp:
+```bash
+npm install @pulumi/kubernetes
+```
+
+## Step 3: Write the Pulumi Program
+
+Open `index.ts` and replace the contents with the following code to deploy Kagent and kmcp:
 
 ```typescript
 import * as k8s from "@pulumi/kubernetes";
@@ -112,7 +124,7 @@ import * as pulumi from "@pulumi/pulumi";
 const config = new pulumi.Config();
 const llmApiKey = config.requireSecret("llmApiKey");
 const llmEndpoint = config.get("llmEndpoint") || "https://inference.do-ai.run/v1";
-const llmModel = config.get("llmModel") || "llama3.3-70b-instruct";
+const llmModel = config.get("llmModel") || "anthropic-claude-opus-4.5";
 
 // Create kagent namespace
 const kagentNs = new k8s.core.v1.Namespace("kagent", {
@@ -150,6 +162,8 @@ const kagent = new k8s.helm.v3.Release("kagent", {
     namespace: kagentNs.metadata.name,
     version: "0.7.8",
     values: {
+        // Use consistent naming (agents expect "kagent-controller" service name)
+        fullnameOverride: "kagent",
         // Configure the model provider
         providers: {
             default: "openAI",
@@ -160,6 +174,7 @@ const kagent = new k8s.helm.v3.Release("kagent", {
                 apiKeySecretKey: "OPENAI_API_KEY",
                 config: {
                     baseUrl: llmEndpoint,
+                    maxTokens: 4096,  // Required for Anthropic models via OpenAI-compatible endpoints
                 },
             },
         },
@@ -210,7 +225,7 @@ config:
     default: "https://inference.do-ai.run/v1"
   llmModel:
     type: string
-    default: "llama3.3-70b-instruct"
+    default: "anthropic-claude-opus-4.5"
 
 resources:
   # Create kagent namespace
@@ -257,6 +272,8 @@ resources:
       namespace: ${kagent-ns.metadata.name}
       version: "0.7.8"
       values:
+        # Use consistent naming (agents expect "kagent-controller" service name)
+        fullnameOverride: kagent
         # Configure the model provider
         providers:
           default: openAI
@@ -267,6 +284,7 @@ resources:
             apiKeySecretKey: OPENAI_API_KEY
             config:
               baseUrl: ${llmEndpoint}
+              maxTokens: 4096  # Required for Anthropic models via OpenAI-compatible endpoints
         # UI configuration
         ui:
           enabled: true
@@ -297,14 +315,12 @@ outputs:
 
 ## Step 4: Configure the Stack
 
-Create `Pulumi.dev.yaml` to import your workload ESC environment:
+Create `Pulumi.dev.yaml` in your project directory to import your workload ESC environment:
 
 ```yaml
 environment:
-  - <your-org>/workshop-workload-env
+  - cfgmgmtcamp-2026-workshop-infra-env/workload
 ```
-
-Replace `<your-org>` with your Pulumi organization name.
 
 The workload ESC environment provides:
 - `kubernetes:kubeconfig` - Automatically connects to your Chapter 1 cluster (via stack reference)
@@ -312,13 +328,7 @@ The workload ESC environment provides:
 - `llmEndpoint` - DigitalOcean GenAI endpoint
 - `llmModel` - The LLM model to use
 
-## Step 5: Initialize and Deploy
-
-Initialize a new stack:
-
-```bash
-pulumi stack init dev
-```
+## Step 5: Deploy Kagent
 
 Run `pulumi up` to deploy:
 
@@ -335,17 +345,20 @@ This will install:
 
 ## Step 6: Get the Dashboard URL
 
+**Note**: Since your kubeconfig is stored in the ESC environment, use `pulumi env run` to execute kubectl commands:
+
 Wait for the LoadBalancer to be assigned an external IP:
 
 ```bash
-kubectl get svc -n kagent -w
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get svc -n kagent -w
 ```
 
-Once you see an external IP, open the dashboard in your browser:
+Press **Ctrl+C** once you see an external IP assigned.
+
+Get the dashboard URL:
 
 ```bash
-# Get the external IP
-KAGENT_IP=$(kubectl get svc -n kagent -l app.kubernetes.io/name=kagent-ui -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}')
+KAGENT_IP=$(pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get svc kagent-ui -n kagent -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 echo "Dashboard URL: http://$KAGENT_IP:8080"
 ```
 
@@ -376,13 +389,13 @@ Check that all components are running:
 
 ```bash
 # Check Kagent pods
-kubectl get pods -n kagent
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get pods -n kagent
 
 # Check CRDs
-kubectl get crds | grep kagent
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get crds | grep kagent
 
 # Check agents
-kubectl get agents -n kagent
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get agents -n kagent
 ```
 
 ## Checkpoint
@@ -392,7 +405,7 @@ Before proceeding, verify:
 - [ ] All pods in `kagent` namespace are Running
 - [ ] Dashboard is accessible via LoadBalancer IP
 - [ ] k8s-agent responds to queries in the chat
-- [ ] `kubectl get agents -n kagent` shows k8s-agent and promql-agent
+- [ ] `pulumi env run ... -- kubectl get agents -n kagent` shows k8s-agent and promql-agent
 
 ## Understanding the Architecture
 
@@ -422,8 +435,8 @@ graph TB
 
 ## Stretch Goals
 
-1. **Explore Agent CRDs**: Run `kubectl describe agent k8s-agent -n kagent` to see the full agent specification
-2. **Check Model Config**: Run `kubectl get modelconfig -n kagent` to see the LLM configuration
+1. **Explore Agent CRDs**: Run `pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl describe agent k8s-agent -n kagent` to see the full agent specification
+2. **Check Model Config**: Run `pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get modelconfig -n kagent` to see the LLM configuration
 3. **Test Different Prompts**: Try complex Kubernetes queries with the k8s-agent
 
 ## Learn More

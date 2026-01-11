@@ -43,6 +43,8 @@ const kagent = new k8s.helm.v3.Release("kagent", {
     namespace: kagentNs.metadata.name,
     version: "0.7.8",
     values: {
+        // Use consistent naming (agents expect "kagent-controller" service name)
+        fullnameOverride: "kagent",
         // Configure the model provider
         providers: {
             default: "openAI",
@@ -53,6 +55,7 @@ const kagent = new k8s.helm.v3.Release("kagent", {
                 apiKeySecretKey: "OPENAI_API_KEY",
                 config: {
                     baseUrl: llmEndpoint,
+                    maxTokens: 4096,  // Required for Anthropic models via OpenAI-compatible endpoints
                 },
             },
         },

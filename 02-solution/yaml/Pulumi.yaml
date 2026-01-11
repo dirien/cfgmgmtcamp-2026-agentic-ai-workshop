@@ -11,7 +11,7 @@ config:
     default: "https://inference.do-ai.run/v1"
   llmModel:
     type: string
-    default: "llama3.3-70b-instruct"
+    default: "anthropic-claude-opus-4.5"
 
 resources:
   # Create kagent namespace
@@ -58,6 +58,8 @@ resources:
       namespace: ${kagent-ns.metadata.name}
       version: "0.7.8"
       values:
+        # Use consistent naming (agents expect "kagent-controller" service name)
+        fullnameOverride: kagent
         # Configure the model provider
         providers:
           default: openAI
@@ -68,6 +70,7 @@ resources:
             apiKeySecretKey: OPENAI_API_KEY
             config:
               baseUrl: ${llmEndpoint}
+              maxTokens: 4096  # Required for Anthropic models via OpenAI-compatible endpoints
         # UI configuration
         ui:
           enabled: true

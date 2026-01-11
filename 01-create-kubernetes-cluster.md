@@ -28,7 +28,9 @@ In this chapter, you'll provision a DigitalOcean Kubernetes (DOKS) cluster using
 
 2. Go to **Environments** in the left sidebar and click **Create environment**
 
-3. Name your environment `workshop-infra-env` and click **Create**
+3. Name the ESC project `cfgmgmtcamp-2026-workshop-infra-env` and the environment `workshop`, then click **Create**. This creates the path `cfgmgmtcamp-2026-workshop-infra-env/workshop` that you'll reference later
+
+   ![img.png](img/img.png)
 
 4. In the environment editor, add the following YAML configuration:
 
@@ -49,21 +51,19 @@ values:
 ```
 
 5. Replace `dop_v1_your_token_here` with your actual DigitalOcean API token
-   - Get your token from the [DigitalOcean API dashboard](https://cloud.digitalocean.com/account/api/tokens)
+   - Get your token from the instructor of the workshop
    - The `fn::secret` function encrypts the value so it's never stored in plain text
 
 6. Click **Save** to save the environment
 
 ### Use the ESC Environment in Your Pulumi Stack
 
-Create or edit `Pulumi.dev.yaml` in the `01-solution/typescript` directory to import the ESC environment:
+Create or edit `Pulumi.dev.yaml` in your project directory to import the ESC environment:
 
 ```yaml
 environment:
-  - <your-org>/workshop-infra-env
+  - cfgmgmtcamp-2026-workshop-infra-env/workshop
 ```
-
-Replace `<your-org>` with your Pulumi organization name.
 
 This imports the infrastructure ESC environment which provides:
 - `DIGITALOCEAN_TOKEN` - API token for creating DigitalOcean resources (automatically set as environment variable)
@@ -74,7 +74,7 @@ This imports the infrastructure ESC environment which provides:
 To verify the ESC environment is working, run:
 
 ```bash
-esc open <your-org>/workshop-infra-env
+pulumi env open cfgmgmtcamp-2026-workshop-infra-env/workshop
 ```
 
 You should see output similar to:
@@ -97,16 +97,23 @@ The `[secret]` values indicate your token is securely encrypted.
 
 ## Step 2: Create the Project Directory
 
-Navigate to the solution directory and install dependencies:
+Change into a directory of your choice and create the project folder:
 
 ```bash
-cd 01-solution/typescript
-npm install
+mkdir -p cfgmgmtcamp-2026-agentic-ai-workshop
+cd cfgmgmtcamp-2026-agentic-ai-workshop
+pulumi new typescript -f
 ```
 
-## Step 3: Review the Code
+Install the DigitalOcean provider:
 
-Let's look at the Pulumi program that provisions our cluster:
+```bash
+npm install @pulumi/digitalocean
+```
+
+## Step 3: Write the Pulumi Program
+
+Open `index.ts` (or equivalent for your chosen language) and add the following code to create a DOKS cluster:
 
 ```typescript
 import * as digitalocean from "@pulumi/digitalocean";
@@ -206,15 +213,7 @@ outputs:
 ```
 </details>
 
-## Step 4: Initialize the Stack
-
-Create a new Pulumi stack for your deployment:
-
-```bash
-pulumi stack init dev
-```
-
-## Step 5: Deploy the Cluster
+## Step 4: Deploy the Cluster
 
 Run `pulumi up` to create the cluster:
 
@@ -226,7 +225,7 @@ Review the preview and select **yes** to proceed. The cluster creation takes app
 
 This is a good time for a coffee break!
 
-## Step 6: Configure kubectl
+## Step 5: Configure kubectl
 
 Once the cluster is ready, save the kubeconfig:
 
@@ -235,7 +234,7 @@ pulumi stack output kubeconfig --show-secrets > kubeconfig.yaml
 export KUBECONFIG=$(pwd)/kubeconfig.yaml
 ```
 
-## Step 7: Verify the Cluster
+## Step 6: Verify the Cluster
 
 Check that the cluster is accessible:
 
