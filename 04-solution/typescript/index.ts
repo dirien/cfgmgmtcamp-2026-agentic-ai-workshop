@@ -190,13 +190,13 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
                         name: "http",
                     }],
                     resources: {
-                        // BUG: 8Gi memory request on 8GB nodes = pod cannot be scheduled!
+                        // FIXED: Changed memory request from 8Gi to 64Mi and limit to 128Mi
                         requests: {
-                            memory: "8Gi",
+                            memory: "64Mi",
                             cpu: "100m",
                         },
                         limits: {
-                            memory: "8Gi",
+                            memory: "128Mi",
                             cpu: "200m",
                         },
                     },
