@@ -126,7 +126,7 @@ export const monitoringNamespace = monitoringNs.metadata.name;
 export const appsNamespace = appsNs.metadata.name;
 ```
 
-<details>
+<details markdown="1">
 <summary>Click to see YAML version</summary>
 
 ```yaml

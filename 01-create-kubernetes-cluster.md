@@ -157,7 +157,7 @@ export const clusterUrn = cluster.clusterUrn;
 export const kubeconfig = cluster.kubeConfigs[0].rawConfig;
 ```
 
-<details>
+<details markdown="1">
 <summary>Click to see YAML version</summary>
 
 ```yaml
