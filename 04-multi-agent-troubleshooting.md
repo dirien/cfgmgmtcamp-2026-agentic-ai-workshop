@@ -56,9 +56,17 @@ tools:
 
 ## Step 1: Navigate to the Solution Directory
 
+Choose your preferred language:
+
+**TypeScript:**
 ```bash
 cd 04-solution/typescript
 npm install
+```
+
+**YAML:**
+```bash
+cd 04-solution/yaml
 ```
 
 ## Step 2: Review the Code
