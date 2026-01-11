@@ -25,16 +25,16 @@ graph TD
     orch["Orchestrator Agent<br/>Investigate why podinfo-faulty is not running and fix it"]
 
     orch --> k8s
-    orch --> promql
+    orch --> obs
     orch --> pulumi
 
     k8s["K8s Agent<br/>Check pod status"]
-    promql["PromQL Agent<br/>Analyze resources"]
+    obs["Observability Agent<br/>Query metrics"]
     pulumi["Pulumi Agent<br/>Create a fix PR"]
 
     style orch fill:#6366f1,stroke:#4f46e5,color:#fff
     style k8s fill:#22c55e,stroke:#16a34a,color:#fff
-    style promql fill:#22c55e,stroke:#16a34a,color:#fff
+    style obs fill:#22c55e,stroke:#16a34a,color:#fff
     style pulumi fill:#22c55e,stroke:#16a34a,color:#fff
 ```
 
@@ -153,14 +153,14 @@ const orchestratorAgent = new k8s.apiextensions.CustomResource("orchestrator-age
         declarative: {
             systemMessage: `You are an incident response orchestrator. When users report issues:
 1. Use k8s-agent to diagnose Kubernetes problems
-2. Use promql-agent to analyze metrics
+2. Use observability-agent to query and analyze metrics
 3. Use pulumi-agent to create PRs for fixes
 
 Coordinate the specialists and synthesize their findings.`,
             modelConfig: "default",
             tools: [
                 { type: "Agent", agent: { ref: "k8s-agent" } },
-                { type: "Agent", agent: { ref: "promql-agent" } },
+                { type: "Agent", agent: { ref: "observability-agent" } },
                 { type: "Agent", agent: { ref: "pulumi-agent" } },
             ],
         },
@@ -185,7 +185,7 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
             spec: {
                 containers: [{
                     name: "podinfo",
-                    image: "stefanprodan/podinfo:6.7.1",
+                    image: "stefanprodan/podinfo:6.9.4",
                     resources: {
                         // BUG: 8Gi memory on 8GB nodes = can't schedule!
                         requests: { memory: "8Gi", cpu: "100m" },
@@ -201,16 +201,30 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
 
 ## Step 3: Configure the Stack
 
-Set your Pulumi access token (needed for the Pulumi Remote MCP):
+Create `Pulumi.dev.yaml` in your project directory to import the workload ESC environment:
 
-```bash
-pulumi stack init dev
-pulumi config set pulumiAccessToken --secret
-# Enter your Pulumi access token when prompted
+```yaml
+environment:
+  - cfgmgmtcamp-2026-workshop-infra-env/workload
 ```
 
-You can get a Pulumi access token from:
-https://app.pulumi.com/account/tokens
+Add your Pulumi access token to the ESC environment. Edit your `cfgmgmtcamp-2026-workshop-infra-env/workload` environment in [Pulumi Cloud](https://app.pulumi.com) and add:
+
+```yaml
+values:
+  # ... existing values ...
+
+  # Pulumi access token for Neo MCP
+  pulumi:
+    accessToken:
+      fn::secret: "your-pulumi-access-token-here"
+
+  pulumiConfig:
+    # ... existing config ...
+    pulumiAccessToken: ${pulumi.accessToken}
+```
+
+You can get a Pulumi access token from: https://app.pulumi.com/account/tokens
 
 ## Step 4: Deploy Everything
 
@@ -230,7 +244,7 @@ This creates:
 Check that the pod is stuck in Pending:
 
 ```bash
-kubectl get pods -n apps -l app=podinfo-faulty
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get pods -n apps -l app=podinfo-faulty
 ```
 
 Expected output:
@@ -242,7 +256,7 @@ podinfo-faulty-xxxxxxxxx-xxxxx    0/1     Pending   0          1m
 Check why it's pending:
 
 ```bash
-kubectl describe pod -n apps -l app=podinfo-faulty
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl describe pod -n apps -l app=podinfo-faulty
 ```
 
 You should see an event like:
@@ -264,7 +278,7 @@ Investigate why podinfo-faulty is not running and fix it
 4. Watch as the orchestrator:
    - **Calls k8s-agent**: "What's the status of podinfo-faulty?"
    - **Analyzes the response**: "Pod is Pending due to insufficient memory"
-   - **Calls promql-agent**: "What's the available memory on nodes?"
+   - **Calls observability-agent**: "What's the available memory on nodes?"
    - **Synthesizes findings**: "The 8Gi request exceeds node capacity"
    - **Calls pulumi-agent**: "Create a PR to fix the memory request"
 
@@ -279,14 +293,14 @@ sequenceDiagram
     participant U as User
     participant O as Orchestrator Agent
     participant K as K8s Agent
-    participant P as PromQL Agent
+    participant OBS as Observability Agent
     participant PU as Pulumi Agent
 
     U->>O: Investigate why podinfo-faulty is not running
     O->>K: Check pod status
     K-->>O: Pod is Pending
-    O->>P: Analyze resources
-    P-->>O: 8Gi request on 8GB nodes
+    O->>OBS: Analyze resources
+    OBS-->>O: 8Gi request on 8GB nodes
     O->>PU: Create fix PR
     PU-->>O: PR created!
     O-->>U: Memory request changed to 128Mi
@@ -314,24 +328,32 @@ Verify:
 
 ### "Agent not found" errors
 
-Make sure the k8s-agent and promql-agent from Chapter 2 are still running:
+Make sure the k8s-agent and observability-agent from Chapter 2 are still running:
 ```bash
-kubectl get agents -n kagent
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get agents -n kagent
 ```
 
 ### Pulumi MCP connection issues
 
 Verify the secret and MCP server:
 ```bash
-kubectl get secrets -n kagent | grep pulumi
-kubectl get remotemcpservers -n kagent
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get secrets -n kagent | grep pulumi
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get remotemcpservers -n kagent
+```
+
+### Observability Agent not ready
+
+If the observability-agent shows `READY: Unknown` or `ACCEPTED: False`, check that the Grafana MCP server from Chapter 2 is running:
+```bash
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get mcpservers -n kagent
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl logs -n kagent -l app.kubernetes.io/name=kagent-grafana-mcp
 ```
 
 ### LLM timeout errors
 
 The DigitalOcean GenAI endpoint might be slow. Wait and retry, or check the model config:
 ```bash
-kubectl get modelconfig -n kagent -o yaml
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get modelconfig -n kagent -o yaml
 ```
 
 ## Stretch Goals
