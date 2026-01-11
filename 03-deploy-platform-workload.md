@@ -12,7 +12,7 @@ In this chapter, you'll deploy the monitoring stack that our AI agents will use 
 - Deploy Metrics Server for resource metrics
 - Deploy kube-prometheus-stack (Prometheus + Grafana + Alertmanager)
 - Deploy Podinfo as a sample application with metrics
-- Enable the PromQL agent to query metrics
+- Enable the observability-agent to query metrics
 
 ## Estimated Time: 30 minutes
 
@@ -23,20 +23,29 @@ In this chapter, you'll deploy the monitoring stack that our AI agents will use 
 Our AI agents need data to make informed decisions:
 
 - **k8s-agent** queries the Kubernetes API for pod status, events, and configurations
-- **promql-agent** queries Prometheus for metrics like CPU, memory, and application performance
+- **observability-agent** queries Prometheus for metrics like CPU, memory, and application performance
 
-Without Prometheus, the promql-agent has no data source to query!
+Without Prometheus, the observability-agent has no data source to query!
 
-## Step 1: Navigate to the Solution Directory
+## Step 1: Create the Project Directory
+
+Create a new directory for this chapter's code:
 
 ```bash
-cd 03-solution/typescript
-npm install
+mkdir -p cfgmgmtcamp-2026-platform
+cd cfgmgmtcamp-2026-platform
+pulumi new typescript -f
 ```
 
-## Step 2: Review the Code
+Install the Kubernetes provider:
 
-Here's the Pulumi program that deploys the monitoring stack:
+```bash
+npm install @pulumi/kubernetes
+```
+
+## Step 2: Write the Pulumi Program
+
+Open `index.ts` and replace the contents with the following code to deploy the monitoring stack:
 
 ```typescript
 import * as k8s from "@pulumi/kubernetes";
@@ -63,7 +72,7 @@ const metricsServer = new k8s.helm.v3.Release("metrics-server", {
         repo: "https://kubernetes-sigs.github.io/metrics-server/",
     },
     namespace: "kube-system",
-    version: "3.12.2",
+    version: "3.13.0",
     values: {
         args: [
             "--kubelet-insecure-tls",
@@ -73,12 +82,13 @@ const metricsServer = new k8s.helm.v3.Release("metrics-server", {
 
 // Install kube-prometheus-stack (Prometheus, Grafana, Alertmanager)
 const prometheusStack = new k8s.helm.v3.Release("kube-prometheus-stack", {
+    name: "kube-prometheus-stack", // Explicit release name for consistent service names
     chart: "kube-prometheus-stack",
     repositoryOpts: {
         repo: "https://prometheus-community.github.io/helm-charts",
     },
     namespace: monitoringNs.metadata.name,
-    version: "66.3.1",
+    version: "80.13.3",
     values: {
         grafana: {
             enabled: true,
@@ -86,6 +96,19 @@ const prometheusStack = new k8s.helm.v3.Release("kube-prometheus-stack", {
             service: {
                 type: "LoadBalancer",
                 port: 80,
+            },
+            // Ensure datasources are provisioned before Grafana starts
+            sidecar: {
+                datasources: {
+                    initDatasources: true,
+                },
+            },
+            "grafana.ini": {
+                // Enable anonymous access for observability-agent
+                "auth.anonymous": {
+                    enabled: true,
+                    org_role: "Viewer",
+                },
             },
         },
         prometheus: {
@@ -111,7 +134,7 @@ const podinfo = new k8s.helm.v3.Release("podinfo", {
         repo: "https://stefanprodan.github.io/podinfo",
     },
     namespace: appsNs.metadata.name,
-    version: "6.7.1",
+    version: "6.9.4",
     values: {
         replicaCount: 2,
         serviceMonitor: {
@@ -160,7 +183,7 @@ resources:
       repositoryOpts:
         repo: https://kubernetes-sigs.github.io/metrics-server/
       namespace: kube-system
-      version: "3.12.2"
+      version: "3.13.0"
       values:
         args:
           - --kubelet-insecure-tls
@@ -168,11 +191,12 @@ resources:
   kube-prometheus-stack:
     type: kubernetes:helm.sh/v3:Release
     properties:
+      name: kube-prometheus-stack  # Explicit release name for consistent service names
       chart: kube-prometheus-stack
       repositoryOpts:
         repo: https://prometheus-community.github.io/helm-charts
       namespace: ${monitoring-ns.metadata.name}
-      version: "66.3.1"
+      version: "80.13.3"
       values:
         grafana:
           enabled: true
@@ -180,6 +204,13 @@ resources:
           service:
             type: LoadBalancer
             port: 80
+          sidecar:
+            datasources:
+              initDatasources: true
+          grafana.ini:
+            auth.anonymous:
+              enabled: true
+              org_role: Viewer
         prometheus:
           prometheusSpec:
             retention: 24h
@@ -206,7 +237,7 @@ resources:
       repositoryOpts:
         repo: https://stefanprodan.github.io/podinfo
       namespace: ${apps-ns.metadata.name}
-      version: "6.7.1"
+      version: "6.9.4"
       values:
         replicaCount: 2
         serviceMonitor:
@@ -223,38 +254,50 @@ outputs:
 ```
 </details>
 
-## Step 3: Deploy the Stack
+## Step 3: Configure the Stack
 
-Initialize a stack and deploy:
+Create `Pulumi.dev.yaml` in your project directory to import the workload ESC environment:
+
+```yaml
+environment:
+  - cfgmgmtcamp-2026-workshop-infra-env/workload
+```
+
+This reuses the same ESC environment from Chapter 2, which provides:
+- `kubernetes:kubeconfig` - Automatically connects to your cluster
+- `grafanaAdminPassword` - Grafana admin password (defaults to `workshop-admin`)
+
+## Step 4: Deploy the Stack
+
+Run `pulumi up` to deploy:
 
 ```bash
-pulumi stack init dev
 pulumi up
 ```
 
 **Warning**: This deployment takes 3-5 minutes as it installs several Helm charts.
 
-## Step 4: Verify the Deployment
+## Step 5: Verify the Deployment
 
 Check that all pods are running:
 
 ```bash
 # Check monitoring stack
-kubectl get pods -n monitoring
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get pods -n monitoring
 
 # Check metrics server
-kubectl get pods -n kube-system | grep metrics
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get pods -n kube-system | grep metrics
 
 # Check sample application
-kubectl get pods -n apps
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get pods -n apps
 ```
 
-## Step 5: Access Grafana
+## Step 6: Access Grafana
 
 Get the Grafana LoadBalancer IP:
 
 ```bash
-GRAFANA_IP=$(kubectl get svc -n monitoring kube-prometheus-stack-grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+GRAFANA_IP=$(pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get svc -n monitoring kube-prometheus-stack-grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 echo "Grafana URL: http://$GRAFANA_IP"
 ```
 
@@ -262,49 +305,53 @@ Login credentials:
 - **Username**: admin
 - **Password**: workshop-admin (or your configured password)
 
-## Step 6: Test Metrics Server
+## Step 7: Test Metrics Server
 
 Verify that `kubectl top` works:
 
 ```bash
 # View node resource usage
-kubectl top nodes
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl top nodes
 
 # View pod resource usage
-kubectl top pods -n apps
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl top pods -n apps
 ```
 
-## Step 7: Test the PromQL Agent
+## Step 8: Test the Observability Agent
 
-Now that Prometheus is running, the promql-agent can query metrics!
+Now that Prometheus is running, the observability-agent can query real metrics!
 
-1. Open the Kagent dashboard
-2. Select **promql-agent**
-3. Try these queries:
+1. Open the Kagent dashboard (from Chapter 2)
+2. Select **observability-agent**
+3. Try these prompts:
    - "What is the CPU usage of pods in the apps namespace?"
    - "Show me memory usage for the podinfo deployment"
-   - "Are there any pods with high CPU throttling?"
+   - "Which nodes have the highest CPU utilization and should I be concerned?"
 
-## Step 8: Explore Prometheus
+The observability-agent will generate PromQL queries, execute them against Prometheus, and return actual metric data.
 
-Forward the Prometheus port locally:
+## Step 9: Explore Prometheus (Optional)
+
+To access the Prometheus UI directly, you can port-forward:
 
 ```bash
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
+pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
 ```
 
 Open http://localhost:9090 to access the Prometheus UI and try queries like:
 
 ```promql
-# Container CPU usage
+# Container CPU usage in apps namespace
 rate(container_cpu_usage_seconds_total{namespace="apps"}[5m])
 
-# Container memory usage
+# Container memory usage in apps namespace
 container_memory_working_set_bytes{namespace="apps"}
 
-# Podinfo HTTP requests
-rate(http_requests_total{app="podinfo"}[5m])
+# Podinfo HTTP requests by status code
+sum(rate(http_requests_total{namespace="apps"}[5m])) by (status)
 ```
+
+**Tip**: You can also explore metrics through Grafana's "Explore" feature, which doesn't require port-forwarding.
 
 ## Architecture Overview
 
@@ -343,14 +390,14 @@ Before proceeding, verify:
 - [ ] All pods in `monitoring` namespace are Running
 - [ ] Metrics Server is running in `kube-system`
 - [ ] Podinfo is running with 2 replicas in `apps`
-- [ ] `kubectl top nodes` shows resource usage
-- [ ] promql-agent can answer questions about metrics
+- [ ] `pulumi env run ... -- kubectl top nodes` shows resource usage
+- [ ] observability-agent can answer questions about metrics
 
 ## Stretch Goals
 
 1. **Create a Custom Dashboard**: Import or create a Grafana dashboard for Podinfo metrics
 2. **Test Alerting**: Check the Alertmanager UI for any firing alerts
-3. **Explore ServiceMonitor**: Run `kubectl get servicemonitor -A` to see how Prometheus discovers metrics
+3. **Explore ServiceMonitor**: Run `pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get servicemonitor -A` to see how Prometheus discovers metrics
 
 ## Learn More
 

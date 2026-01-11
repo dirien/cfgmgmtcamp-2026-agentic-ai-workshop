@@ -51,7 +51,8 @@ bundle exec jekyll serve
 
 - **Orchestrator Agent**: Coordinates specialist agents for incident response
 - **k8s-agent**: Kubernetes diagnostics (built-in to Kagent)
-- **promql-agent**: Prometheus metrics analysis (built-in to Kagent)
+- **promql-agent**: PromQL query generation (built-in to Kagent)
+- **observability-agent**: Prometheus metrics execution and Grafana dashboards (built-in to Kagent)
 - **pulumi-agent**: Infrastructure fixes via Pulumi Neo MCP (creates PRs)
 
 ### Key Technologies
