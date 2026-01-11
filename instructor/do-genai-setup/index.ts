@@ -88,4 +88,5 @@ providers:
     apiKeySecretKey: OPENAI_API_KEY
     config:
       baseUrl: ${inferenceEndpoint}
+      maxTokens: 4096  # Required for Anthropic models
 `;
