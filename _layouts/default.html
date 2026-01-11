@@ -34,6 +34,13 @@
     code.language-mermaid {
       background: transparent !important;
     }
+    /* Fix mermaid subgraph/cluster label colors for readability */
+    .mermaid .cluster-label,
+    .mermaid .cluster-label span,
+    .mermaid g.cluster text {
+      fill: #1f2328 !important;
+      color: #1f2328 !important;
+    }
     .theme-toggle {
       position: fixed;
       top: 16px;
@@ -134,17 +141,23 @@
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
-    function getMermaidTheme() {
-      const colorMode = document.documentElement.getAttribute('data-color-mode');
-      if (colorMode === 'auto') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default';
-      }
-      return colorMode === 'dark' ? 'dark' : 'default';
-    }
-
     mermaid.initialize({
       startOnLoad: true,
-      theme: getMermaidTheme()
+      theme: 'base',
+      themeVariables: {
+        // Use dark text colors for all labels to ensure readability on light fills
+        primaryTextColor: '#1f2328',
+        secondaryTextColor: '#1f2328',
+        tertiaryTextColor: '#1f2328',
+        clusterBkg: '#f5f5f5',
+        clusterBorder: '#333333',
+        // Node styling
+        nodeBorder: '#333333',
+        mainBkg: '#ffffff',
+        // Ensure text is always dark for readability
+        textColor: '#1f2328',
+        labelTextColor: '#1f2328'
+      }
     });
     await mermaid.run({
       querySelector: '.language-mermaid',
