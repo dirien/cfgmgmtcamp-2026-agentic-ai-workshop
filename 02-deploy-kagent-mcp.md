@@ -208,7 +208,7 @@ export const kagentVersion = "0.7.8";
 export const kagentReleaseName = kagent.name;
 ```
 
-<details>
+<details markdown="1">
 <summary>Click to see YAML version</summary>
 
 ```yaml
