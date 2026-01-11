@@ -1,2 +1,2 @@
 environment:
-  - dirien/workshop-workload-env
+  - cfgmgmtcamp-2026-workshop-infra-env/workload

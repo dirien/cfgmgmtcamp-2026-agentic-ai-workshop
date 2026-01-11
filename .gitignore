@@ -56,3 +56,4 @@ kubeconfig
 
 # DigitalOcean
 .do/
+**/kubeconfig.yaml

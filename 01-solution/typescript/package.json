@@ -5,7 +5,7 @@
     "@types/node": "^22"
   },
   "dependencies": {
-    "@pulumi/digitalocean": "^4.36.0",
-    "@pulumi/pulumi": "^3.145.0"
+    "@pulumi/digitalocean": "^4.56.0",
+    "@pulumi/pulumi": "^3.215.0"
   }
 }
