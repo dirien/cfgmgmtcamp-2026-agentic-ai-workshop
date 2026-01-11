@@ -109,12 +109,12 @@ const orchestratorAgent = new k8s.apiextensions.CustomResource("orchestrator-age
 
 Your specialist agents:
 1. **k8s-agent**: Kubernetes expert for diagnosing pods, deployments, services, events, and cluster state
-2. **promql-agent**: Metrics expert for analyzing Prometheus metrics and resource utilization
+2. **observability-agent**: Metrics expert for querying Prometheus and analyzing resource utilization
 3. **pulumi-agent**: Infrastructure expert for fixing issues in Pulumi code via pull requests
 
 Investigation workflow:
 1. Start by asking k8s-agent to check the current state of the problematic resource
-2. If resource issues are found (like scheduling problems), ask promql-agent to analyze cluster resources
+2. If resource issues are found (like scheduling problems), ask observability-agent to analyze cluster resources
 3. Once root cause is identified, ask pulumi-agent to create a PR with the fix
 
 Always:
@@ -131,7 +131,7 @@ Always:
                 },
                 {
                     type: "Agent",
-                    agent: { ref: "promql-agent" },
+                    agent: { ref: "observability-agent" },
                 },
                 {
                     type: "Agent",
@@ -184,7 +184,7 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
             spec: {
                 containers: [{
                     name: "podinfo",
-                    image: "stefanprodan/podinfo:6.7.1",
+                    image: "stefanprodan/podinfo:6.9.4",
                     ports: [{
                         containerPort: 9898,
                         name: "http",
@@ -239,7 +239,7 @@ Demo Instructions:
 
 5. Watch the orchestrator:
    - Delegate to k8s-agent to check pod status
-   - Delegate to promql-agent to analyze node resources
+   - Delegate to observability-agent to analyze node resources
    - Delegate to pulumi-agent to create a fix PR
 
 6. The fix should change memory request from 8Gi to 128Mi
