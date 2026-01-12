@@ -57,10 +57,17 @@ bundle exec jekyll serve
 
 ### Key Technologies
 
-- **Kagent CRDs**: `Agent` (v1alpha2), `RemoteMCPServer` (v1alpha1)
-- **Helm Charts**: `kagent-crds` and `kagent` from `ghcr.io/kagent-dev/kagent/helm/`
+- **Kagent CRDs**: `Agent` (v1alpha2), `RemoteMCPServer` (v1alpha2)
+- **Helm Charts**: `kagent-crds` and `kagent` from `ghcr.io/kagent-dev/kagent/helm/` (version 0.7.8)
 - **MCP**: Model Context Protocol for tool integration (Pulumi MCP at `https://mcp.ai.pulumi.com/mcp`)
 - **ESC**: Pulumi Environments for secrets (DigitalOcean token, LLM API key, Pulumi access token)
+
+### Important Configuration Notes
+
+- **A2A Streaming Timeout**: Chapter 02 configures `controller.streaming.timeout: "1200s"` (20 minutes) to prevent timeouts during long-running Neo tasks. Default is 600s.
+- **Pulumi Neo Approval**: Neo requires manual approval before creating PRs. The pulumi-agent returns a task link for the user to approve in Pulumi Cloud.
+- **Agent Reference Schema**: When referencing agents as tools, use `{ type: "Agent", agent: { kind: "Agent", apiGroup: "kagent.dev", name: "<agent-name>" } }`
+- **RemoteMCPServer Headers**: Use `headersFrom` with `valueFrom: { name, key, type: "Secret" }` schema for authentication headers
 
 ## Configuration
 
