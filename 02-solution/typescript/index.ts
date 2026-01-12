@@ -45,6 +45,12 @@ const kagent = new k8s.helm.v3.Release("kagent", {
     values: {
         // Use consistent naming (agents expect "kagent-controller" service name)
         fullnameOverride: "kagent",
+        // Controller configuration - increase A2A streaming timeout for long-running tasks like Pulumi Neo
+        controller: {
+            streaming: {
+                timeout: "1200s",  // 20 minutes (default is 600s / 10 minutes)
+            },
+        },
         // Configure the model provider
         providers: {
             default: "openAI",

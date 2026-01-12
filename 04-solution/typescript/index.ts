@@ -5,24 +5,28 @@ import * as pulumi from "@pulumi/pulumi";
 const config = new pulumi.Config();
 const pulumiAccessToken = config.requireSecret("pulumiAccessToken");
 
+// Get the current Pulumi organization dynamically
+const pulumiOrg = pulumi.getOrganization();
+
 // Namespaces (assumed to exist from previous chapters)
 const kagentNamespace = "kagent";
 const appsNamespace = "apps";
 
-// Create secret for Pulumi access token
+// Create secret for Pulumi access token and org header
 const pulumiSecret = new k8s.core.v1.Secret("pulumi-access-token", {
     metadata: {
         name: "pulumi-access-token",
         namespace: kagentNamespace,
     },
     stringData: {
-        token: pulumiAccessToken,
+        authorization: pulumi.interpolate`Bearer ${pulumiAccessToken}`,
+        org: pulumiOrg,
     },
 });
 
 // RemoteMCPServer for Pulumi
 const pulumiMcp = new k8s.apiextensions.CustomResource("pulumi-remote-mcp", {
-    apiVersion: "kagent.dev/v1alpha1",
+    apiVersion: "kagent.dev/v1alpha2",
     kind: "RemoteMCPServer",
     metadata: {
         name: "pulumi-remote-mcp",
@@ -32,14 +36,24 @@ const pulumiMcp = new k8s.apiextensions.CustomResource("pulumi-remote-mcp", {
         url: "https://mcp.ai.pulumi.com/mcp",
         description: "Pulumi Remote MCP for infrastructure management and Pulumi Neo",
         protocol: "STREAMABLE_HTTP",
-        headersFrom: [{
-            secretKeyRef: {
-                name: "pulumi-access-token",
-                key: "token",
+        headersFrom: [
+            {
+                name: "Authorization",
+                valueFrom: {
+                    name: "pulumi-access-token",
+                    key: "authorization",
+                    type: "Secret",
+                },
             },
-            header: "Authorization",
-            valueTemplate: "Bearer {{ .Value }}",
-        }],
+            {
+                name: "X-Pulumi-Org",
+                valueFrom: {
+                    name: "pulumi-access-token",
+                    key: "org",
+                    type: "Secret",
+                },
+            },
+        ],
     },
 }, { dependsOn: [pulumiSecret] });
 
@@ -55,23 +69,38 @@ const pulumiAgent = new k8s.apiextensions.CustomResource("pulumi-agent", {
         description: "Infrastructure management agent using Pulumi Neo",
         type: "Declarative",
         declarative: {
-            systemMessage: `You are a Pulumi infrastructure expert. Your role is to:
-- Analyze infrastructure code and configurations
-- Use Pulumi Neo to understand existing infrastructure
-- Create pull requests with fixes for infrastructure issues
-- Implement infrastructure changes safely following GitOps practices
+            systemMessage: `You are a Pulumi infrastructure expert using Pulumi Neo to fix Kubernetes infrastructure issues.
 
-When asked to fix issues:
-1. First analyze the current state using Pulumi Neo tools
-2. Identify the root cause in the Pulumi code
-3. Create a PR with the fix using Neo's PR creation capability
-4. Explain what changes were made and why`,
-            modelConfig: "default",
+You have access to Pulumi Neo tools:
+- neo-bridge: Launch a Neo task to analyze and fix issues autonomously
+- neo-get-tasks: Check status of Neo tasks
+
+When asked to fix an issue, call neo-bridge with a message that includes ALL of these mandatory instructions:
+
+MANDATORY INSTRUCTIONS TO INCLUDE IN EVERY NEO-BRIDGE CALL:
+"IMPORTANT CONSTRAINTS:
+1. Do NOT run pulumi preview
+2. Do NOT run any validation or checks
+3. Do NOT ask any questions - proceed with assumptions
+4. Do NOT wait for user confirmation
+5. Go DIRECTLY to creating the pull request with the fix
+6. If you need to choose between options, pick the most reasonable one automatically
+7. Skip all interactive prompts and approval steps
+8. Create the PR immediately without any preliminary steps
+
+Fix the issue and create a PR now."
+
+After calling neo-bridge, use neo-get-tasks to monitor progress and get the PR link.
+
+IMPORTANT: You must execute completely autonomously. Never ask questions. Never wait for approval. Just fix and report.`,
+            modelConfig: "default-model-config",
             tools: [{
                 type: "McpServer",
                 mcpServer: {
                     name: "pulumi-remote-mcp",
                     kind: "RemoteMCPServer",
+                    apiGroup: "kagent.dev",
+                    toolNames: [],  // Empty list = all tools from the MCP server
                 },
             }],
             a2aConfig: {
@@ -122,20 +151,32 @@ Always:
 - Summarize findings from each specialist
 - Provide clear, actionable recommendations
 - When creating fixes, explain what will be changed and why`,
-            modelConfig: "default",
+            modelConfig: "default-model-config",
             tools: [
                 // Reference other agents as tools (A2A pattern)
                 {
                     type: "Agent",
-                    agent: { ref: "k8s-agent" },
+                    agent: {
+                        kind: "Agent",
+                        apiGroup: "kagent.dev",
+                        name: "k8s-agent",
+                    },
                 },
                 {
                     type: "Agent",
-                    agent: { ref: "observability-agent" },
+                    agent: {
+                        kind: "Agent",
+                        apiGroup: "kagent.dev",
+                        name: "observability-agent",
+                    },
                 },
                 {
                     type: "Agent",
-                    agent: { ref: "pulumi-agent" },
+                    agent: {
+                        kind: "Agent",
+                        apiGroup: "kagent.dev",
+                        name: "pulumi-agent",
+                    },
                 },
             ],
             a2aConfig: {
@@ -168,6 +209,7 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
             purpose: "workshop-demo",
         },
         annotations: {
+            "pulumi.com/skipAwait": "true",  // Don't wait for ready - this deployment is intentionally broken
             "workshop.cfgmgmtcamp.org/bug": "Memory request too high for node capacity",
             "workshop.cfgmgmtcamp.org/expected-state": "Pending",
         },
@@ -216,6 +258,9 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
             },
         },
     },
+}, {
+    // Skip waiting for this deployment - it's intentionally broken for the demo
+    customTimeouts: { create: "10s", update: "10s" },
 });
 
 // Export agent names for reference
@@ -242,5 +287,7 @@ Demo Instructions:
    - Delegate to observability-agent to analyze node resources
    - Delegate to pulumi-agent to create a fix PR
 
-6. The fix should change memory request from 8Gi to 128Mi
+6. Click the Neo task link to approve and create the PR
+
+7. The fix should change memory request from 8Gi to 128Mi
 `;
