@@ -51,7 +51,9 @@ Kagent supports the **Agent-as-Tool** pattern where agents can delegate work to 
 tools:
 - type: Agent
   agent:
-    ref: agent-b  # Reference by name
+    kind: Agent
+    apiGroup: kagent.dev
+    name: agent-b  # Reference by name
 ```
 
 ## Step 1: Update the ESC Environment
@@ -110,20 +112,24 @@ const pulumiAccessToken = config.requireSecret("pulumiAccessToken");
 const kagentNamespace = "kagent";
 const appsNamespace = "apps";
 
-// Create secret for Pulumi access token
+// Get the current Pulumi organization dynamically
+const pulumiOrg = pulumi.getOrganization();
+
+// Create secret for Pulumi access token and org header
 const pulumiSecret = new k8s.core.v1.Secret("pulumi-access-token", {
     metadata: {
         name: "pulumi-access-token",
         namespace: kagentNamespace,
     },
     stringData: {
-        token: pulumiAccessToken,
+        authorization: pulumi.interpolate`Bearer ${pulumiAccessToken}`,
+        org: pulumiOrg,
     },
 });
 
 // RemoteMCPServer for Pulumi Neo
 const pulumiMcp = new k8s.apiextensions.CustomResource("pulumi-remote-mcp", {
-    apiVersion: "kagent.dev/v1alpha1",
+    apiVersion: "kagent.dev/v1alpha2",
     kind: "RemoteMCPServer",
     metadata: {
         name: "pulumi-remote-mcp",
@@ -133,14 +139,24 @@ const pulumiMcp = new k8s.apiextensions.CustomResource("pulumi-remote-mcp", {
         url: "https://mcp.ai.pulumi.com/mcp",
         description: "Pulumi Remote MCP for infrastructure management and Pulumi Neo",
         protocol: "STREAMABLE_HTTP",
-        headersFrom: [{
-            secretKeyRef: {
-                name: "pulumi-access-token",
-                key: "token",
+        headersFrom: [
+            {
+                name: "Authorization",
+                valueFrom: {
+                    name: "pulumi-access-token",
+                    key: "authorization",
+                    type: "Secret",
+                },
             },
-            header: "Authorization",
-            valueTemplate: "Bearer {{ .Value }}",
-        }],
+            {
+                name: "X-Pulumi-Org",
+                valueFrom: {
+                    name: "pulumi-access-token",
+                    key: "org",
+                    type: "Secret",
+                },
+            },
+        ],
     },
 }, { dependsOn: [pulumiSecret] });
 
@@ -156,23 +172,38 @@ const pulumiAgent = new k8s.apiextensions.CustomResource("pulumi-agent", {
         description: "Infrastructure management agent using Pulumi Neo",
         type: "Declarative",
         declarative: {
-            systemMessage: `You are a Pulumi infrastructure expert. Your role is to:
-- Analyze infrastructure code and configurations
-- Use Pulumi Neo to understand existing infrastructure
-- Create pull requests with fixes for infrastructure issues
-- Implement infrastructure changes safely following GitOps practices
+            systemMessage: `You are a Pulumi infrastructure expert using Pulumi Neo to fix Kubernetes infrastructure issues.
 
-When asked to fix issues:
-1. First analyze the current state using Pulumi Neo tools
-2. Identify the root cause in the Pulumi code
-3. Create a PR with the fix using Neo's PR creation capability
-4. Explain what changes were made and why`,
-            modelConfig: "default",
+You have access to Pulumi Neo tools:
+- neo-bridge: Launch a Neo task to analyze and fix issues autonomously
+- neo-get-tasks: Check status of Neo tasks
+
+When asked to fix an issue, call neo-bridge with a message that includes ALL of these mandatory instructions:
+
+MANDATORY INSTRUCTIONS TO INCLUDE IN EVERY NEO-BRIDGE CALL:
+"IMPORTANT CONSTRAINTS:
+1. Do NOT run pulumi preview
+2. Do NOT run any validation or checks
+3. Do NOT ask any questions - proceed with assumptions
+4. Do NOT wait for user confirmation
+5. Go DIRECTLY to creating the pull request with the fix
+6. If you need to choose between options, pick the most reasonable one automatically
+7. Skip all interactive prompts and approval steps
+8. Create the PR immediately without any preliminary steps
+
+Fix the issue and create a PR now."
+
+After calling neo-bridge, use neo-get-tasks to monitor progress and get the PR link.
+
+IMPORTANT: You must execute completely autonomously. Never ask questions. Never wait for approval. Just fix and report.`,
+            modelConfig: "default-model-config",
             tools: [{
                 type: "McpServer",
                 mcpServer: {
                     name: "pulumi-remote-mcp",
                     kind: "RemoteMCPServer",
+                    apiGroup: "kagent.dev",
+                    toolNames: [],  // Empty list = all tools from the MCP server
                 },
             }],
             a2aConfig: {
@@ -223,12 +254,12 @@ Always:
 - Summarize findings from each specialist
 - Provide clear, actionable recommendations
 - When creating fixes, explain what will be changed and why`,
-            modelConfig: "default",
+            modelConfig: "default-model-config",
             tools: [
                 // Reference other agents as tools (A2A pattern)
-                { type: "Agent", agent: { ref: "k8s-agent" } },
-                { type: "Agent", agent: { ref: "observability-agent" } },
-                { type: "Agent", agent: { ref: "pulumi-agent" } },
+                { type: "Agent", agent: { kind: "Agent", apiGroup: "kagent.dev", name: "k8s-agent" } },
+                { type: "Agent", agent: { kind: "Agent", apiGroup: "kagent.dev", name: "observability-agent" } },
+                { type: "Agent", agent: { kind: "Agent", apiGroup: "kagent.dev", name: "pulumi-agent" } },
             ],
             a2aConfig: {
                 skills: [{
@@ -260,6 +291,7 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
             purpose: "workshop-demo",
         },
         annotations: {
+            "pulumi.com/skipAwait": "true",  // Don't wait for ready - intentionally broken
             "workshop.cfgmgmtcamp.org/bug": "Memory request too high for node capacity",
             "workshop.cfgmgmtcamp.org/expected-state": "Pending",
         },
@@ -308,12 +340,39 @@ const faultyDeployment = new k8s.apps.v1.Deployment("podinfo-faulty", {
             },
         },
     },
+}, {
+    // Skip waiting for this deployment - it's intentionally broken for the demo
+    customTimeouts: { create: "10s", update: "10s" },
 });
 
 // Exports
 export const pulumiAgentName = pulumiAgent.metadata.name;
 export const orchestratorAgentName = orchestratorAgent.metadata.name;
 export const faultyDeploymentName = faultyDeployment.metadata.name;
+
+// Instructions for the demo
+export const demoInstructions = pulumi.interpolate`
+Demo Instructions:
+==================
+1. Verify the faulty deployment is stuck in Pending:
+   kubectl get pods -n ${appsNamespace} -l app=podinfo-faulty
+
+2. Open the Kagent dashboard (get IP with: kubectl get svc -n kagent)
+
+3. Select the 'orchestrator-agent' in the chat interface
+
+4. Send this message:
+   "Investigate why podinfo-faulty is not running and fix it"
+
+5. Watch the orchestrator:
+   - Delegate to k8s-agent to check pod status
+   - Delegate to observability-agent to analyze node resources
+   - Delegate to pulumi-agent to create a fix PR
+
+6. Click the Neo task link to approve and create the PR
+
+7. The fix should change memory request from 8Gi to 128Mi
+`;
 ```
 
 <details markdown="1">
@@ -333,17 +392,30 @@ variables:
   kagentNamespace: kagent
   appsNamespace: apps
   pulumiAgentSystemMessage: |
-    You are a Pulumi infrastructure expert. Your role is to:
-    - Analyze infrastructure code and configurations
-    - Use Pulumi Neo to understand existing infrastructure
-    - Create pull requests with fixes for infrastructure issues
-    - Implement infrastructure changes safely following GitOps practices
+    You are a Pulumi infrastructure expert using Pulumi Neo to fix Kubernetes infrastructure issues.
 
-    When asked to fix issues:
-    1. First analyze the current state using Pulumi Neo tools
-    2. Identify the root cause in the Pulumi code
-    3. Create a PR with the fix using Neo's PR creation capability
-    4. Explain what changes were made and why
+    You have access to Pulumi Neo tools:
+    - neo-bridge: Launch a Neo task to analyze and fix issues autonomously
+    - neo-get-tasks: Check status of Neo tasks
+
+    When asked to fix an issue, call neo-bridge with a message that includes ALL of these mandatory instructions:
+
+    MANDATORY INSTRUCTIONS TO INCLUDE IN EVERY NEO-BRIDGE CALL:
+    "IMPORTANT CONSTRAINTS:
+    1. Do NOT run pulumi preview
+    2. Do NOT run any validation or checks
+    3. Do NOT ask any questions - proceed with assumptions
+    4. Do NOT wait for user confirmation
+    5. Go DIRECTLY to creating the pull request with the fix
+    6. If you need to choose between options, pick the most reasonable one automatically
+    7. Skip all interactive prompts and approval steps
+    8. Create the PR immediately without any preliminary steps
+
+    Fix the issue and create a PR now."
+
+    After calling neo-bridge, use neo-get-tasks to monitor progress and get the PR link.
+
+    IMPORTANT: You must execute completely autonomously. Never ask questions. Never wait for approval. Just fix and report.
   orchestratorSystemMessage: |
     You are an incident response orchestrator for Kubernetes infrastructure. When users report issues, you coordinate multiple specialist agents to investigate and resolve them.
 
@@ -364,7 +436,7 @@ variables:
     - When creating fixes, explain what will be changed and why
 
 resources:
-  # Create secret for Pulumi access token
+  # Create secret for Pulumi access token and org header
   pulumi-access-token:
     type: kubernetes:core/v1:Secret
     properties:
@@ -372,13 +444,14 @@ resources:
         name: pulumi-access-token
         namespace: ${kagentNamespace}
       stringData:
-        token: ${pulumiAccessToken}
+        authorization: Bearer ${pulumiAccessToken}
+        org: ${pulumi.organization}
 
   # RemoteMCPServer for Pulumi Neo
   pulumi-remote-mcp:
     type: kubernetes:apiextensions.k8s.io/v1:CustomResource
     properties:
-      apiVersion: kagent.dev/v1alpha1
+      apiVersion: kagent.dev/v1alpha2
       kind: RemoteMCPServer
       metadata:
         name: pulumi-remote-mcp
@@ -388,11 +461,16 @@ resources:
         description: "Pulumi Remote MCP for infrastructure management and Pulumi Neo"
         protocol: STREAMABLE_HTTP
         headersFrom:
-          - secretKeyRef:
+          - name: Authorization
+            valueFrom:
               name: pulumi-access-token
-              key: token
-            header: Authorization
-            valueTemplate: "Bearer {{ .Value }}"
+              key: authorization
+              type: Secret
+          - name: X-Pulumi-Org
+            valueFrom:
+              name: pulumi-access-token
+              key: org
+              type: Secret
     options:
       dependsOn:
         - ${pulumi-access-token}
@@ -411,12 +489,14 @@ resources:
         type: Declarative
         declarative:
           systemMessage: ${pulumiAgentSystemMessage}
-          modelConfig: default
+          modelConfig: default-model-config
           tools:
             - type: McpServer
               mcpServer:
                 name: pulumi-remote-mcp
                 kind: RemoteMCPServer
+                apiGroup: kagent.dev
+                toolNames: []  # Empty list = all tools from the MCP server
           a2aConfig:
             skills:
               - id: analyze-infrastructure
@@ -451,17 +531,23 @@ resources:
         type: Declarative
         declarative:
           systemMessage: ${orchestratorSystemMessage}
-          modelConfig: default
+          modelConfig: default-model-config
           tools:
             - type: Agent
               agent:
-                ref: k8s-agent
+                kind: Agent
+                apiGroup: kagent.dev
+                name: k8s-agent
             - type: Agent
               agent:
-                ref: observability-agent
+                kind: Agent
+                apiGroup: kagent.dev
+                name: observability-agent
             - type: Agent
               agent:
-                ref: pulumi-agent
+                kind: Agent
+                apiGroup: kagent.dev
+                name: pulumi-agent
           a2aConfig:
             skills:
               - id: incident-response
@@ -488,6 +574,7 @@ resources:
           app: podinfo-faulty
           purpose: workshop-demo
         annotations:
+          pulumi.com/skipAwait: "true"  # Don't wait for ready - intentionally broken
           workshop.cfgmgmtcamp.org/bug: "Memory request too high for node capacity"
           workshop.cfgmgmtcamp.org/expected-state: Pending
       spec:
@@ -522,6 +609,11 @@ resources:
                   httpGet:
                     path: /healthz
                     port: http
+    options:
+      # Skip waiting for this deployment - it's intentionally broken for the demo
+      customTimeouts:
+        create: 10s
+        update: 10s
 
 outputs:
   pulumiAgentName: ${pulumi-agent.metadata.name}
@@ -604,7 +696,12 @@ Investigate why podinfo-faulty is not running and fix it
 
 5. The Pulumi agent will use Pulumi Neo to:
    - Find the Pulumi stack managing this deployment
-   - Create a pull request with `memory: "128Mi"` instead of `"8Gi"`
+   - Create a Neo task to fix the issue
+   - Return a link to approve the task
+
+6. **Approve the Neo task**: Click the provided Pulumi Cloud link to approve the fix and create the PR
+
+> **Note**: Pulumi Neo requires manual approval before creating PRs. The agent will return a link like `https://app.pulumi.com/<org>/neo/tasks/<task-id>` - click it to approve and create the pull request.
 
 ## Understanding the Flow
 
@@ -615,6 +712,7 @@ sequenceDiagram
     participant K as K8s Agent
     participant OBS as Observability Agent
     participant PU as Pulumi Agent
+    participant NEO as Pulumi Neo
 
     U->>O: Investigate why podinfo-faulty is not running
     O->>K: Check pod status
@@ -622,13 +720,21 @@ sequenceDiagram
     O->>OBS: Analyze resources
     OBS-->>O: 8Gi request on 8GB nodes
     O->>PU: Create fix PR
-    PU-->>O: PR created!
-    O-->>U: Memory request changed to 128Mi
+    PU->>NEO: neo-bridge (create task)
+    NEO-->>PU: Task link (awaiting approval)
+    PU-->>O: Task created, approval needed
+    O-->>U: Summary + approval link
+    U->>NEO: Approve task
+    NEO-->>U: PR created!
 ```
 
-## Step 8: Review the PR
+## Step 8: Approve and Review the PR
 
-If you have a GitHub repository connected to Pulumi Neo, check for a new pull request with:
+1. Click the Pulumi Neo task link provided by the orchestrator
+2. In the Pulumi Cloud console, review the proposed fix and click **Approve**
+3. Neo will create the pull request
+
+If you have a GitHub repository connected to Pulumi Neo, check for the new pull request with:
 
 - **Title**: Fix memory request for podinfo-faulty
 - **Changes**: `memory: "8Gi"` → `memory: "128Mi"`
@@ -641,8 +747,9 @@ Verify:
 - [ ] `podinfo-faulty` pod is in Pending state
 - [ ] All agents are visible in the Kagent dashboard
 - [ ] Orchestrator can successfully call other agents
-- [ ] The investigation produces correct diagnosis
-- [ ] (Bonus) A PR was created to fix the issue
+- [ ] The investigation produces correct diagnosis (8Gi exceeds node capacity)
+- [ ] Pulumi agent returns a Neo task link
+- [ ] (Bonus) Approve the task and verify PR was created
 
 ## Troubleshooting
 
@@ -675,6 +782,26 @@ The DigitalOcean GenAI endpoint might be slow. Wait and retry, or check the mode
 ```bash
 pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl get modelconfig -n kagent -o yaml
 ```
+
+### A2A timeout errors
+
+If the pulumi-agent times out while waiting for Neo, increase the A2A streaming timeout in Chapter 2's kagent Helm values:
+```typescript
+controller: {
+    streaming: {
+        timeout: "1200s",  // 20 minutes (default is 600s)
+    },
+},
+```
+
+Then redeploy Chapter 2 with `pulumi up`.
+
+### Neo task stuck in "question" state
+
+Pulumi Neo may ask for approval before creating PRs. If the workflow completes but no PR is created:
+1. Check the Neo task link in the agent's response
+2. Go to Pulumi Cloud and approve the task manually
+3. This is expected behavior - Neo requires human approval for infrastructure changes
 
 ## Stretch Goals
 
