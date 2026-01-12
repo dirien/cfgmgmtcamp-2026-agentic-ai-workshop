@@ -30,7 +30,7 @@ Time to clean up! In this chapter, we'll destroy all the resources we created to
 The multi-agent setup and faulty deployment:
 
 ```bash
-cd 04-solution/typescript
+cd cfgmgmtcamp-2026-multi-agent
 pulumi destroy --yes
 pulumi stack rm dev --yes
 ```
@@ -40,7 +40,7 @@ pulumi stack rm dev --yes
 The monitoring stack and sample application:
 
 ```bash
-cd ../03-solution/typescript
+cd ../cfgmgmtcamp-2026-platform
 pulumi destroy --yes
 pulumi stack rm dev --yes
 ```
@@ -50,7 +50,7 @@ pulumi stack rm dev --yes
 Kagent, kmcp, and all AI agents:
 
 ```bash
-cd ../02-solution/typescript
+cd ../cfgmgmtcamp-2026-kagent
 pulumi destroy --yes
 pulumi stack rm dev --yes
 ```
@@ -60,7 +60,7 @@ pulumi stack rm dev --yes
 The DigitalOcean Kubernetes cluster:
 
 ```bash
-cd ../01-solution/typescript
+cd ../cfgmgmtcamp-2026-agentic-ai-workshop
 pulumi destroy --yes
 pulumi stack rm dev --yes
 ```
@@ -101,29 +101,29 @@ doctl compute volume list
 
 ## One-Command Cleanup (Alternative)
 
-If you prefer to clean everything at once, create this script:
+If you prefer to clean everything at once, create this script in the parent directory of your project folders:
 
 ```bash
 #!/bin/bash
-# cleanup.sh - Run from the havana directory
+# cleanup.sh - Run from the parent directory containing all workshop project folders
 
 set -e
 
 echo "Destroying Chapter 4..."
-cd 04-solution/typescript && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
-cd ../..
+cd cfgmgmtcamp-2026-multi-agent && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
+cd ..
 
 echo "Destroying Chapter 3..."
-cd 03-solution/typescript && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
-cd ../..
+cd cfgmgmtcamp-2026-platform && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
+cd ..
 
 echo "Destroying Chapter 2..."
-cd 02-solution/typescript && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
-cd ../..
+cd cfgmgmtcamp-2026-kagent && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
+cd ..
 
 echo "Destroying Chapter 1..."
-cd 01-solution/typescript && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
-cd ../..
+cd cfgmgmtcamp-2026-agentic-ai-workshop && pulumi destroy --yes && pulumi stack rm dev --yes --force 2>/dev/null || true
+cd ..
 
 echo "Cleanup complete!"
 ```
@@ -140,10 +140,10 @@ Remove generated files:
 
 ```bash
 # Remove kubeconfig files
-rm -f 01-solution/typescript/kubeconfig.yaml
+rm -f cfgmgmtcamp-2026-agentic-ai-workshop/kubeconfig.yaml
 
 # Remove node_modules (optional, to save space)
-rm -rf */*/node_modules
+rm -rf cfgmgmtcamp-2026-*/node_modules
 ```
 
 ## Final Checklist
@@ -169,7 +169,7 @@ We hope you learned:
 
 - Star this repo: [github.com/dirien/cfgmgmtcamp-2026-agentic-ai-workshop](https://github.com/dirien/cfgmgmtcamp-2026-agentic-ai-workshop)
 - Join the Pulumi Community: [slack.pulumi.com](https://slack.pulumi.com/)
-- Follow us on Twitter: [@PulumiCorp](https://twitter.com/PulumiCorp)
+- Follow us on X: [@PulumiCorp](https://x.com/PulumiCorp)
 - Learn more: [pulumi.com/learn](https://www.pulumi.com/learn/)
 
 ## Feedback
