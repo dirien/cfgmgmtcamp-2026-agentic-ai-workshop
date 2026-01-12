@@ -82,4 +82,4 @@ Solutions use Pulumi ESC environments for credentials. Key config values:
 
 ## Development Environment
 
-Use GitHub Codespaces or the devcontainer which includes: kubectl, helm, pulumi, doctl, node (LTS), docker-in-docker.
+Use GitHub Codespaces or the devcontainer which is based on the official `pulumi/pulumi` Docker image and includes: kubectl, helm, pulumi, doctl, node, GitHub CLI (gh), and vim.
