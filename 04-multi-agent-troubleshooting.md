@@ -5,7 +5,7 @@ layout: default
 
 # Chapter 4: Multi-Agent Troubleshooting
 
-This is the grand finale! In this chapter, you'll create a multi-agent system where an **orchestrator agent** coordinates specialist agents to autonomously investigate and fix infrastructure issues.
+This is the final chapter. You'll create a multi-agent system where an orchestrator agent coordinates specialist agents to autonomously investigate and fix infrastructure issues.
 
 ## Goals
 
@@ -677,7 +677,7 @@ Events:
   Warning  FailedScheduling  Insufficient memory
 ```
 
-## Step 7: The Demo - Watch the Magic!
+## Step 7: Run the demo
 
 1. Open the Kagent dashboard
 2. Select **orchestrator-agent** from the sidebar
@@ -817,18 +817,14 @@ Pulumi Neo may ask for approval before creating PRs. If the workflow completes b
 - [Model Context Protocol Spec](https://spec.modelcontextprotocol.io/)
 - [Kubernetes Scheduling](https://kubernetes.io/docs/concepts/scheduling-eviction/)
 
-## Congratulations!
+## Congratulations
 
 You've built a multi-agent system that can:
 - Diagnose Kubernetes issues autonomously
 - Analyze metrics and resource utilization
 - Create pull requests to fix infrastructure code
 
-This is just the beginning! The patterns you've learned can be extended to:
-- Incident response automation
-- Self-healing infrastructure
-- AI-assisted operations (AIOps)
-- And much more!
+The patterns you've learned can be extended to incident response automation, self-healing infrastructure, and AI-assisted operations (AIOps).
 
 ---
 

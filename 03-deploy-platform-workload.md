@@ -18,7 +18,7 @@ In this chapter, you'll deploy the monitoring stack that our AI agents will use 
 
 ---
 
-## Why Do We Need Monitoring?
+## Why do we need monitoring?
 
 Our AI agents need data to make informed decisions:
 
@@ -319,7 +319,7 @@ pulumi env run cfgmgmtcamp-2026-workshop-infra-env/workload -- kubectl top pods 
 
 ## Step 8: Test the Observability Agent
 
-Now that Prometheus is running, the observability-agent can query real metrics!
+Now that Prometheus is running, the observability-agent can query real metrics.
 
 1. Open the Kagent dashboard (from Chapter 2)
 2. Select **observability-agent**

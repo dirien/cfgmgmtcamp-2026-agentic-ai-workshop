@@ -22,12 +22,7 @@ In this chapter, you'll deploy [Kagent](https://kagent.dev/) - a Kubernetes-nati
 
 ## What is Kagent?
 
-Kagent is a CNCF sandbox project that brings agentic AI to Kubernetes. It provides:
-
-- **Custom Resource Definitions (CRDs)** for defining agents declaratively
-- **Built-in agents** for Kubernetes operations (k8s-agent, promql-agent, observability-agent)
-- **MCP integration** for connecting to external tools and services
-- **A web UI** for interacting with agents via chat
+Kagent is a CNCF sandbox project that brings agentic AI to Kubernetes. It provides Custom Resource Definitions (CRDs) for defining agents declaratively, built-in agents for Kubernetes operations (k8s-agent, promql-agent, observability-agent), MCP integration for connecting to external tools and services, and a web UI for interacting with agents via chat.
 
 ## Step 1: Create the Workload ESC Environment
 

@@ -5,7 +5,7 @@ layout: default
 
 # Chapter 5: Housekeeping
 
-Time to clean up! In this chapter, we'll destroy all the resources we created to avoid unnecessary charges on your DigitalOcean account.
+Time to clean up. In this chapter, we'll destroy all the resources we created to avoid unnecessary charges on your DigitalOcean account.
 
 ## Goals
 
@@ -155,15 +155,11 @@ Before leaving, verify:
 - [ ] No unexpected charges on your account
 - [ ] Any important work saved/exported
 
-## Thank You!
+## Thank you
 
-Thank you for attending the **Building AI-Assisted Operations: Agentic AI Workshop**!
+Thank you for attending the Building AI-Assisted Operations: Agentic AI Workshop.
 
-We hope you learned:
-- How to deploy Kubernetes-native AI agents with Kagent
-- How to use MCP for connecting agents to external tools
-- How to create multi-agent systems that coordinate autonomously
-- How to use Pulumi for infrastructure as code
+This workshop covered deploying Kubernetes-native AI agents with Kagent, using MCP to connect agents to external tools, creating multi-agent systems that coordinate autonomously, and using Pulumi for infrastructure as code.
 
 ## Stay Connected
 
@@ -178,4 +174,4 @@ We'd love to hear your feedback! Please fill out the workshop survey (link provi
 
 ---
 
-See you at the next CfgMgmtCamp!
+See you at the next CfgMgmtCamp.
