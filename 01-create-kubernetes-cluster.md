@@ -223,7 +223,7 @@ pulumi up
 
 Review the preview and select **yes** to proceed. The cluster creation takes approximately 5-10 minutes.
 
-This is a good time for a coffee break!
+This is a good time for a coffee break.
 
 ## Step 5: Configure kubectl
 

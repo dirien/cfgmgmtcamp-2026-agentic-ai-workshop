@@ -5,7 +5,7 @@ layout: default
 
 # Building AI-Assisted Operations: Agentic AI Workshop
 
-Welcome to the **Agentic AI Workshop** at CfgMgmtCamp Ghent 2026!
+Welcome to the Agentic AI Workshop at CfgMgmtCamp Ghent 2026.
 
 In this hands-on workshop, you'll learn how to build AI-assisted operational workflows using Kubernetes-native AI agents. By the end of this workshop, you'll have a multi-agent system that can autonomously investigate and fix infrastructure issues.
 
@@ -30,10 +30,7 @@ graph TD
     style G fill:#f59e0b,stroke:#d97706,color:#fff
 ```
 
-Your multi-agent system will:
-- **Diagnose** Kubernetes issues (pods, deployments, events)
-- **Analyze** metrics and resource utilization
-- **Create** pull requests to fix infrastructure code
+Your multi-agent system will diagnose Kubernetes issues (pods, deployments, events), analyze metrics and resource utilization, and create pull requests to fix infrastructure code.
 
 ## Workshop Chapters
 
@@ -105,4 +102,4 @@ These credentials are automatically available when you use the workshop's Pulumi
 
 ---
 
-Ready to begin? Let's start with [Chapter 1: Create Kubernetes Cluster](01-create-kubernetes-cluster)!
+Let's start with [Chapter 1: Create Kubernetes Cluster](01-create-kubernetes-cluster).
