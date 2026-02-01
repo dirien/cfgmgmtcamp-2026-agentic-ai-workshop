@@ -58,7 +58,7 @@ bundle exec jekyll serve
 ### Key Technologies
 
 - **Kagent CRDs**: `Agent` (v1alpha2), `RemoteMCPServer` (v1alpha2)
-- **Helm Charts**: `kagent-crds` and `kagent` from `ghcr.io/kagent-dev/kagent/helm/` (version 0.7.8)
+- **Helm Charts**: `kagent-crds` and `kagent` from `ghcr.io/kagent-dev/kagent/helm/` (version 0.7.12)
 - **MCP**: Model Context Protocol for tool integration (Pulumi MCP at `https://mcp.ai.pulumi.com/mcp`)
 - **ESC**: Pulumi Environments for secrets (DigitalOcean token, LLM API key, Pulumi access token)
 

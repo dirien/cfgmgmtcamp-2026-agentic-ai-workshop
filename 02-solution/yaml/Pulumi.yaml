@@ -41,7 +41,7 @@ resources:
     properties:
       chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
       namespace: ${kagent-ns.metadata.name}
-      version: "0.7.8"
+      version: "0.7.12"
       values:
         kmcp:
           enabled: true
@@ -56,7 +56,7 @@ resources:
     properties:
       chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent
       namespace: ${kagent-ns.metadata.name}
-      version: "0.7.8"
+      version: "0.7.12"
       values:
         # Use consistent naming (agents expect "kagent-controller" service name)
         fullnameOverride: kagent
@@ -105,5 +105,5 @@ resources:
 
 outputs:
   namespace: ${kagent-ns.metadata.name}
-  kagentVersion: "0.7.8"
+  kagentVersion: "0.7.12"
   kagentReleaseName: ${kagent.name}

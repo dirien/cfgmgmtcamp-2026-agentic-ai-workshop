@@ -142,7 +142,7 @@ const llmSecret = new k8s.core.v1.Secret("kagent-openai", {
 const kagentCrds = new k8s.helm.v3.Release("kagent-crds", {
     chart: "oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds",
     namespace: kagentNs.metadata.name,
-    version: "0.7.8",
+    version: "0.7.12",
     values: {
         kmcp: {
             enabled: true,
@@ -155,7 +155,7 @@ const kagentCrds = new k8s.helm.v3.Release("kagent-crds", {
 const kagent = new k8s.helm.v3.Release("kagent", {
     chart: "oci://ghcr.io/kagent-dev/kagent/helm/kagent",
     namespace: kagentNs.metadata.name,
-    version: "0.7.8",
+    version: "0.7.12",
     values: {
         // Use consistent naming (agents expect "kagent-controller" service name)
         fullnameOverride: "kagent",
@@ -214,7 +214,7 @@ const kagent = new k8s.helm.v3.Release("kagent", {
 export const namespace = kagentNs.metadata.name;
 
 // Export status of Helm releases
-export const kagentVersion = "0.7.8";
+export const kagentVersion = "0.7.12";
 export const kagentReleaseName = kagent.name;
 ```
 
@@ -265,7 +265,7 @@ resources:
     properties:
       chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent-crds
       namespace: ${kagent-ns.metadata.name}
-      version: "0.7.8"
+      version: "0.7.12"
       values:
         kmcp:
           enabled: true
@@ -280,7 +280,7 @@ resources:
     properties:
       chart: oci://ghcr.io/kagent-dev/kagent/helm/kagent
       namespace: ${kagent-ns.metadata.name}
-      version: "0.7.8"
+      version: "0.7.12"
       values:
         # Use consistent naming (agents expect "kagent-controller" service name)
         fullnameOverride: kagent
@@ -330,7 +330,7 @@ resources:
 
 outputs:
   namespace: ${kagent-ns.metadata.name}
-  kagentVersion: "0.7.8"
+  kagentVersion: "0.7.12"
   kagentReleaseName: ${kagent.name}
 ```
 </details>

@@ -88,7 +88,7 @@ const prometheusStack = new k8s.helm.v3.Release("kube-prometheus-stack", {
         repo: "https://prometheus-community.github.io/helm-charts",
     },
     namespace: monitoringNs.metadata.name,
-    version: "80.13.3",
+    version: "81.4.2",
     values: {
         grafana: {
             enabled: true,
@@ -196,7 +196,7 @@ resources:
       repositoryOpts:
         repo: https://prometheus-community.github.io/helm-charts
       namespace: ${monitoring-ns.metadata.name}
-      version: "80.13.3"
+      version: "81.4.2"
       values:
         grafana:
           enabled: true
