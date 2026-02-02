@@ -49,12 +49,11 @@ Both environments live in the same ESC project (`cfgmgmtcamp-2026-workshop-infra
 values:
   # Get kubeconfig from Chapter 1 stack using stack reference
   # This enables automatic connection to the K8s cluster created in Chapter 1
-  # Replace <your-org> with your Pulumi organization name
   stacks:
     fn::open::pulumi-stacks:
       stacks:
         k8s-cluster:
-          stack: <your-org>/cfgmgmtcamp-2026-agentic-ai-workshop/dev
+          stack: cfgmgmtcamp-2026-agentic-ai-workshop/dev
 
   kubeconfig: ${stacks.k8s-cluster.kubeconfig}
 
@@ -83,9 +82,7 @@ values:
     KUBECONFIG: ${kubeconfig}
 ```
 
-5. Replace the following placeholders:
-   - `<your-org>` with your Pulumi organization name (find it at the top of Pulumi Cloud or run `pulumi whoami -v`)
-   - `your-do-genai-api-key-here` with your actual DigitalOcean GenAI API key
+5. Replace `your-do-genai-api-key-here` with your actual DigitalOcean GenAI API key
 
 6. Click **Save** to save the environment
 
