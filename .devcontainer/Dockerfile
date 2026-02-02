@@ -13,5 +13,5 @@ RUN sudo apt install vim -y
 
 # Install DigitalOcean CLI (doctl)
 RUN cd /tmp && \
-    curl -sL https://github.com/digitalocean/doctl/releases/download/v1.119.0/doctl-1.119.0-linux-amd64.tar.gz | tar -xzv && \
+    curl -sL https://github.com/digitalocean/doctl/releases/download/v1.149.0/doctl-1.149.0-linux-amd64.tar.gz | tar -xzv && \
     sudo mv doctl /usr/local/bin/
