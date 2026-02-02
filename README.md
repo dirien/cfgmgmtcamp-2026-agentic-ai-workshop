@@ -77,6 +77,28 @@ Click the button below to open this repository in GitHub Codespaces with all dep
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/dirien/cfgmgmtcamp-2026-agentic-ai-workshop)
 
+#### Codespace Requirements
+
+The workshop devcontainer uses a large base image (`pulumi/pulumi`). To avoid build failures due to disk space limitations, please note:
+
+| Machine Type | Disk Space | Recommendation |
+|--------------|------------|----------------|
+| 2-core | 32 GB | May fail during build |
+| 4-core | 32 GB | Recommended minimum |
+| 8-core | 64 GB | Best experience |
+| 16-core | 128 GB | Overkill for this workshop |
+
+**Free tier limits:** GitHub Free accounts include 120 core hours and 15 GB storage per month.
+
+#### Codespace Troubleshooting
+
+If your Codespace fails to build with a "no space left on device" error:
+
+1. **Delete the failed Codespace** and create a new one with a larger machine type (4-core or higher)
+2. **Check your storage usage** at https://github.com/settings/billing - old Codespaces consume storage quota
+3. **Delete unused Codespaces** to free up storage allocation
+4. **Use local development** as an alternative (see below)
+
 ### Local Development
 
 1. Clone this repository:
