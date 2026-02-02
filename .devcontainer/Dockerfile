@@ -1,5 +1,8 @@
 FROM --platform=linux/amd64 pulumi/pulumi:3.218.0-amd64
 
+# Remove invalid Kubernetes apt source (v1.35 doesn't exist yet)
+RUN rm -f /etc/apt/sources.list.d/kubernetes.list || true
+
 RUN apt update
 RUN apt install sudo -y
 
