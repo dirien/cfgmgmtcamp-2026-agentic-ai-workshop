@@ -113,7 +113,9 @@ npm install @pulumi/digitalocean
 
 ## Step 3: Write the Pulumi Program
 
-Open `index.ts` (or equivalent for your chosen language) and add the following code to create a DOKS cluster:
+Open `index.ts` (or equivalent for your chosen language) and add the following code to create a DOKS cluster.
+
+> **Note**: The cluster name includes both the Pulumi organization and stack name (e.g., `cfgmgmtcamp-2026-alice-dev`) to ensure uniqueness when multiple participants deploy clusters simultaneously. This prevents naming collisions in shared environments.
 
 ```typescript
 import * as digitalocean from "@pulumi/digitalocean";
@@ -126,14 +128,20 @@ const nodeSize = config.get("nodeSize") || "s-4vcpu-8gb";
 const region = config.get("region") || "fra1";
 const k8sVersion = config.get("k8sVersion") || "1.34";
 
+// Get organization and stack name for unique cluster naming
+const organization = pulumi.getOrganization();
+const stackName = pulumi.getStack();
+
 // Get the latest available Kubernetes version that matches our prefix
 const k8sVersions = digitalocean.getKubernetesVersionsOutput({
     versionPrefix: k8sVersion,
 });
 
 // Create a DigitalOcean Kubernetes cluster
+// Note: Cluster name includes organization and stack name to prevent collisions when multiple
+// participants deploy clusters simultaneously (e.g., "cfgmgmtcamp-2026-alice-dev")
 const cluster = new digitalocean.KubernetesCluster("workshop-cluster", {
-    name: "cfgmgmtcamp-2026",
+    name: `cfgmgmtcamp-2026-${organization}-${stackName}`,
     region: region,
     version: k8sVersions.latestVersion,
     nodePool: {
@@ -190,7 +198,7 @@ resources:
   workshop-cluster:
     type: digitalocean:KubernetesCluster
     properties:
-      name: cfgmgmtcamp-2026
+      name: cfgmgmtcamp-2026-${pulumi.organization}-${pulumi.stack}
       region: ${region}
       version: ${k8sVersions.latestVersion}
       nodePool:

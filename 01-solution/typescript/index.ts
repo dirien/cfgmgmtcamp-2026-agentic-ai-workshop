@@ -8,6 +8,10 @@ const nodeSize = config.get("nodeSize") || "s-4vcpu-8gb";
 const region = config.get("region") || "fra1";
 const k8sVersion = config.get("k8sVersion") || "1.34";
 
+// Get organization and stack name for unique cluster naming
+const organization = pulumi.getOrganization();
+const stackName = pulumi.getStack();
+
 // Get the latest available Kubernetes version that matches our prefix
 const k8sVersions = digitalocean.getKubernetesVersionsOutput({
     versionPrefix: k8sVersion,
@@ -15,7 +19,7 @@ const k8sVersions = digitalocean.getKubernetesVersionsOutput({
 
 // Create a DigitalOcean Kubernetes cluster
 const cluster = new digitalocean.KubernetesCluster("workshop-cluster", {
-    name: "cfgmgmtcamp-2026",
+    name: `cfgmgmtcamp-2026-${organization}-${stackName}`,
     region: region,
     version: k8sVersions.latestVersion,
     nodePool: {

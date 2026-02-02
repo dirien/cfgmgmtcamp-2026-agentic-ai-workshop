@@ -77,7 +77,7 @@ Visit [app.pulumi.com](https://app.pulumi.com) and verify that all stacks are re
 
 Visit the [DigitalOcean Console](https://cloud.digitalocean.com/kubernetes) and verify:
 
-- [ ] No Kubernetes clusters named `cfgmgmtcamp-2026`
+- [ ] No Kubernetes clusters named `cfgmgmtcamp-2026-*` (your workshop clusters)
 - [ ] No orphaned Load Balancers
 - [ ] No orphaned Volumes
 

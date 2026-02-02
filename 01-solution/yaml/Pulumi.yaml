@@ -27,7 +27,7 @@ resources:
   workshop-cluster:
     type: digitalocean:KubernetesCluster
     properties:
-      name: cfgmgmtcamp-2026
+      name: cfgmgmtcamp-2026-${pulumi.organization}-${pulumi.stack}
       region: ${region}
       version: ${k8sVersions.latestVersion}
       nodePool:
