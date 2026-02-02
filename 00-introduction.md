@@ -64,14 +64,14 @@ Click the button below to open this repository in GitHub Codespaces with all too
 1. Clone the repository:
    ```bash
    git clone https://github.com/dirien/cfgmgmtcamp-2026-agentic-ai-workshop.git
-   cd cfgmgmtcamp-2026-agentic-ai-workshop/havana
+   cd cfgmgmtcamp-2026-agentic-ai-workshop
    ```
 
 2. Install the required tools:
    - [Pulumi CLI](https://www.pulumi.com/docs/install/)
    - [kubectl](https://kubernetes.io/docs/tasks/tools/)
    - [Node.js](https://nodejs.org/) (LTS version)
-   - [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install/) (DigitalOcean CLI)
+   - [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install/) (DigitalOcean CLI - optional)
 
 3. Login to Pulumi:
    ```bash

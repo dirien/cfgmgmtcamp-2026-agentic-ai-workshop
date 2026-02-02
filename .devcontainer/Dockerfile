@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 pulumi/pulumi:3.215.0-amd64
+FROM --platform=linux/amd64 pulumi/pulumi:3.218.0-amd64
 
 RUN apt update
 RUN apt install sudo -y
@@ -10,3 +10,8 @@ RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/g
 RUN sudo apt update
 RUN sudo apt install gh -y
 RUN sudo apt install vim -y
+
+# Install DigitalOcean CLI (doctl)
+RUN cd /tmp && \
+    curl -sL https://github.com/digitalocean/doctl/releases/download/v1.149.0/doctl-1.149.0-linux-amd64.tar.gz | tar -xzv && \
+    sudo mv doctl /usr/local/bin/
