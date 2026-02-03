@@ -97,10 +97,11 @@ const prometheusStack = new k8s.helm.v3.Release("kube-prometheus-stack", {
                 type: "LoadBalancer",
                 port: 80,
             },
-            // Ensure datasources are provisioned before Grafana starts
+            // Disable init container that blocks startup
             sidecar: {
                 datasources: {
-                    initDatasources: true,
+                    enabled: true,
+                    initDatasources: false,
                 },
             },
             "grafana.ini": {
@@ -206,7 +207,8 @@ resources:
             port: 80
           sidecar:
             datasources:
-              initDatasources: true
+              enabled: true
+              initDatasources: false
           grafana.ini:
             auth.anonymous:
               enabled: true
