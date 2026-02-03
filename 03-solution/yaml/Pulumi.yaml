@@ -55,7 +55,8 @@ resources:
             port: 80
           sidecar:
             datasources:
-              initDatasources: true
+              enabled: true
+              initDatasources: false
           grafana.ini:
             auth.anonymous:
               enabled: true
