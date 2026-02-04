@@ -56,19 +56,6 @@ values:
 
 6. Click **Save** to save the environment
 
-### Use the ESC Environment in Your Pulumi Stack
-
-Create or edit `Pulumi.dev.yaml` in your project directory to import the ESC environment:
-
-```yaml
-environment:
-  - cfgmgmtcamp-2026-workshop-infra-env/workshop
-```
-
-This imports the infrastructure ESC environment which provides:
-- `DIGITALOCEAN_TOKEN` - API token for creating DigitalOcean resources (automatically set as environment variable)
-- `digitalocean:token` - Same token available as Pulumi config for the DigitalOcean provider
-
 ### Verify the ESC Environment
 
 To verify the ESC environment is working, run:
@@ -110,6 +97,19 @@ Install the DigitalOcean provider:
 ```bash
 npm install @pulumi/digitalocean
 ```
+
+### Use the ESC Environment in Your Pulumi Stack
+
+Now that the project is created, configure it to use the ESC environment. Create or edit `Pulumi.dev.yaml` in your project directory to import the ESC environment:
+
+```yaml
+environment:
+  - cfgmgmtcamp-2026-workshop-infra-env/workshop
+```
+
+This imports the infrastructure ESC environment which provides:
+- `DIGITALOCEAN_TOKEN` - API token for creating DigitalOcean resources (automatically set as environment variable)
+- `digitalocean:token` - Same token available as Pulumi config for the DigitalOcean provider
 
 ## Step 3: Write the Pulumi Program
 
